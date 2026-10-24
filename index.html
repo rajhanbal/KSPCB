@@ -136,11 +136,14 @@
 :root[data-theme="dark"] #kp { --gp-navy: #0d2a4f; --gp-saffron: #f5a04a; --gp-c1: #7aa7e0; --gp-c3: #5cbf86; --gp-c4: #a99be0; --gp-c6: #5cc4d1; --gp-head: #1d2733; --gp-line: #2f3a47; --kp-on-accent: #0b1a2c; }
 #kp .kp-head { background: var(--gp-navy); color: #ffffff; padding: 18px 20px; border-bottom: 4px solid var(--gp-saffron); align-items: center; }
 #kp .kp-head h1 { color: #ffffff; font-family: inherit; font-weight: 600; font-size: 24px; letter-spacing: 0.01em; }
-#kp .kp-take { color: var(--gp-band-text); }
-#kp .kp-take b { color: #ffffff; }
-#kp .kp-fy { color: var(--gp-band-text); }
-#kp .kp-fy select { background: #ffffff; color: #0b2e59; border-color: #ffffff; border-radius: 3px; font-weight: 600; }
-#kp .kp-tabs { background: var(--color-panel); border: 1px solid var(--gp-line); border-top: 0; padding: 0 8px; margin-bottom: var(--cds-gap-lg); }
+.kp-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--cds-gap-md); flex-wrap: wrap; border-bottom: 1px solid var(--color-border-line); margin-bottom: var(--cds-gap-md); }
+.kp-nav .kp-tabs { border-bottom: 0; margin-bottom: 0; }
+.kp-lead { margin: 0; font-size: var(--cds-font-size-body); line-height: 1.5; color: var(--color-fg); }
+#kp .kp-nav { background: var(--color-panel); border: 1px solid var(--gp-line); border-top: 0; padding: 0 12px 0 8px; margin-bottom: var(--cds-gap-lg); }
+#kp .kp-fy { color: var(--color-fg-muted); font-weight: 600; padding-block: 6px; }
+#kp .kp-fy select { background: var(--color-panel); color: var(--color-fg); border: 1px solid var(--gp-line); border-left: 3px solid var(--gp-saffron); border-radius: 2px; font-weight: 600; }
+#kp .kp-lead { border-left: 3px solid var(--gp-saffron); padding: 6px 10px; background: var(--gp-head); }
+#kp .kp-lead b { color: var(--color-fg); font-weight: 600; }
 #kp .kp-tab { font-weight: 600; padding: 12px 16px; border-bottom-width: 3px; }
 #kp .kp-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--gp-saffron); }
 #kp .kp-filters, #kp .kp-card, #kp .kp-tile { border-radius: 2px; border-color: var(--gp-line); }
@@ -159,19 +162,18 @@
 
 <div class="kp" id="kp">
   <div class="kp-head">
-    <div>
-      <div class="kp-brand"><img src="img/kspcb-logo.png" alt="KSPCB logo" class="kp-logo" width="52" height="52"><h1 id="title">Karnataka State Pollution Control Board</h1></div>
-      <p class="kp-take" id="takeaway">In <span class="fy-label">FY 2025-26</span> the Board received <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</b> consent applications and decided <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</b> of them within the year; <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="pending">—</b> were still under process at year end.</p>
-    </div>
-    <label class="kp-fy" for="fy-select"><span>Financial year</span><select id="fy-select" data-source="ar_enforcement"></select></label>
+    <div class="kp-brand"><img src="img/kspcb-logo.png" alt="KSPCB logo" class="kp-logo" width="52" height="52"><h1 id="title">Karnataka State Pollution Control Board</h1></div>
   </div>
 
-  <div class="kp-tabs" role="tablist" id="tabs">
-    <button class="kp-tab" role="tab" data-tab="enforcement" aria-selected="true">Enforcement</button>
-    <button class="kp-tab" role="tab" data-tab="monitoring" aria-selected="false">Monitoring</button>
-    <button class="kp-tab" role="tab" data-tab="financials" aria-selected="false">Financials</button>
-    <button class="kp-tab" role="tab" data-tab="legal" aria-selected="false">Legal</button>
-    <button class="kp-tab" role="tab" data-tab="citizen" aria-selected="false">Citizen corner</button>
+  <div class="kp-nav">
+    <div class="kp-tabs" role="tablist" id="tabs">
+      <button class="kp-tab" role="tab" data-tab="enforcement" aria-selected="true">Enforcement</button>
+      <button class="kp-tab" role="tab" data-tab="monitoring" aria-selected="false">Monitoring</button>
+      <button class="kp-tab" role="tab" data-tab="financials" aria-selected="false">Financials</button>
+      <button class="kp-tab" role="tab" data-tab="legal" aria-selected="false">Legal</button>
+      <button class="kp-tab" role="tab" data-tab="citizen" aria-selected="false">Citizen corner</button>
+    </div>
+    <label class="kp-fy" for="fy-select"><span>Financial year</span><select id="fy-select" data-source="ar_enforcement"></select></label>
   </div>
 
   <div class="kp-shell" id="shell">
@@ -202,6 +204,7 @@
         <section class="kp-card" id="card-consent">
           <header class="kp-card-h"><h3>Consent applications, <span class="fy-label">FY 2025-26</span></h3><div class="kp-badges"></div></header>
           <div class="kp-card-b">
+            <p class="kp-lead" id="takeaway">In <span class="fy-label">FY 2025-26</span> the Board received <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</b> consent applications and decided <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</b> of them within the year; <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="pending">—</b> were still under process at year end.</p>
             <p class="kp-note">Disposal rate is applications issued or refused as a share of those received in the year.</p>
             <div class="kp-twrap"><table class="kp-table" id="t-consent" data-source="c_consent" data-row-key="type,fy">
               <thead><tr><th data-field="type">Type</th><th class="num" data-field="received">Received</th><th class="num" data-field="issued">Issued</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="pending">Under process</th><th class="num" data-field="disposal_rate">Disposal rate</th></tr></thead><tbody></tbody></table></div>
