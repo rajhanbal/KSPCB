@@ -20,7 +20,7 @@
     ref_offices: 'ref_offices.json',
     geo_districts: 'geo_districts.json',
   };
-  const DEFAULT_PARAMS = { waste: 'All' };
+  const DEFAULT_PARAMS = { waste: 'All', fy: '2025-26' };
 
   const store = {};
   Object.keys(FILES).forEach((id) => { store[id] = { status: 'loading', data: [] }; });

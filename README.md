@@ -37,4 +37,6 @@ npx serve .
 
 ## Updating figures
 
-Edit the JSON files in `data/` and redeploy. Keep each file's column names, because the page reads them by name. To add a dataset, add it to `FILES` in `js/dash-shim.js`.
+Edit the JSON files in `data/` and redeploy. Keep each file's column names, because the page reads them by name. Every row carries an `fy` column (for example `2025-26`), which drives the Financial year filter; add rows with a new `fy` value to add a year. `ref_offices.json` and `geo_districts.json` have no `fy`. To add a dataset, add it to `FILES` in `js/dash-shim.js`.
+
+The header logo is `img/kspcb-logo.png`; replace it with the original artwork at the same path for a sharper image.

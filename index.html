@@ -7,13 +7,14 @@
 <meta name="description" content="Sample monitoring dashboard for the Karnataka State Pollution Control Board, FY 2025-26.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:wght@400;600&display=swap">
 <link rel="stylesheet" href="css/tokens.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="js/dash-shim.js"></script>
 </head>
 <body>
-<div id="dash-root"><style>
+<div id="dash-root">
+<style>
 .kp { font-family: var(--font-anthropic-sans); color: var(--color-fg); font-size: var(--cds-font-size-body); }
 .kp * { box-sizing: border-box; }
 .kp-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--cds-gap-md); padding-block: var(--cds-pad-sm) var(--cds-pad-md); border-bottom: 1px solid var(--color-border-line); }
@@ -21,6 +22,9 @@
 .kp-take { margin: var(--cds-gap-xs) 0 0; color: var(--color-fg-muted); max-width: 70ch; }
 .kp-take b { font-weight: var(--cds-font-weight-medium); color: var(--color-fg); }
 .kp-legend-note { display: flex; gap: var(--cds-gap-md); flex-wrap: wrap; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); align-items: center; }
+.kp-fy { display: flex; align-items: center; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.kp-fy select { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 6px 28px 6px 10px; cursor: pointer; }
+.kp-fy select:focus-visible { outline: 2px solid var(--kp-accent); outline-offset: 2px; }
 .kp-sw { display: inline-block; width: 12px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
 .kp-sw.real { background: var(--kp-accent); }
 .kp-sw.samp { background: var(--kp-accent); opacity: .35; outline: 1px dashed var(--kp-accent); outline-offset: -1px; }
@@ -33,7 +37,7 @@
 
 .kp-shell { display: grid; grid-template-columns: 13.5rem minmax(0, 1fr); gap: var(--cds-gap-lg); align-items: start; }
 .kp-shell.collapsed { grid-template-columns: 2.5rem minmax(0, 1fr); }
-@media (max-width: 760px) { .kp-shell, .kp-shell.collapsed { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) { .kp-shell, .kp-shell.collapsed { grid-template-columns: minmax(0, 1fr); } .kp-filters { position: static; } }
 .kp-filters { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); position: sticky; top: var(--cds-gap-md); }
 .kp-shell.collapsed .kp-filters { padding: var(--cds-pad-sm) var(--cds-pad-xs); }
 .kp-shell.collapsed .kp-fbody, .kp-shell.collapsed .kp-ftitle { display: none; }
@@ -75,9 +79,9 @@
 
 .kp-chart { position: relative; min-height: 120px; width: 100%; }
 .kp-chart svg { display: block; overflow: visible; }
-.kp-tick { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
-.kp-lab { fill: var(--color-fg); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
-.kp-val { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
+.kp-tick { fill: var(--color-fg-muted); font-size: 12.5px; font-family: var(--font-anthropic-sans); }
+.kp-lab { fill: var(--color-fg); font-size: 13.5px; font-family: var(--font-anthropic-sans); }
+.kp-val { fill: var(--color-fg); font-size: 13px; font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
 .kp-leg { display: flex; flex-wrap: wrap; gap: 4px var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: 6px; }
 .kp-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); z-index: 5; min-width: 9rem; max-width: 16rem; }
 .kp-tip .t { color: var(--cds-text-secondary); margin-bottom: 2px; }
@@ -111,6 +115,8 @@
 .kp-rowbtn i { font-style: normal; width: 1ch; color: var(--color-fg-muted); }
 .kp-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .kp-ctl .kp-chip { background: var(--color-panel); }
+#kp .kp-chip[aria-pressed="true"] { background: var(--kp-accent) !important; background-color: var(--kp-accent) !important; border-color: var(--kp-accent) !important; color: var(--kp-on-accent, #ffffff) !important; font-weight: var(--cds-font-weight-medium); }
+#kp .kp-chip[aria-pressed="false"] { color: var(--color-fg) !important; }
 .kp-scale { display: flex; align-items: center; gap: 6px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 .kp-scale span.ramp { width: 90px; height: 8px; border-radius: 4px; display: inline-block; }
 
@@ -123,20 +129,46 @@
 .kp-planned b { display: block; color: var(--color-fg); font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin-bottom: 2px; }
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 [data-dash-source-state=empty] { color: transparent; }
+
+/* Government portal theme: navy band, saffron accent, square tiles */
+#kp { --gp-navy: #0b2e59; --gp-band-text: #c9d6e8; --gp-saffron: #f28c28; --gp-c1: #1f4e8c; --gp-c3: #2e7d4f; --gp-c4: #6b5ca5; --gp-c6: #2a8c9a; --gp-head: #eef2f6; --gp-line: #d3dae3; --kp-accent: var(--gp-c1); --kp-on-accent: #ffffff; font-family: Mukta, 'Noto Sans', var(--font-anthropic-sans), sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #kp { --gp-navy: #0d2a4f; --gp-saffron: #f5a04a; --gp-c1: #7aa7e0; --gp-c3: #5cbf86; --gp-c4: #a99be0; --gp-c6: #5cc4d1; --gp-head: #1d2733; --gp-line: #2f3a47; --kp-on-accent: #0b1a2c; } }
+:root[data-theme="dark"] #kp { --gp-navy: #0d2a4f; --gp-saffron: #f5a04a; --gp-c1: #7aa7e0; --gp-c3: #5cbf86; --gp-c4: #a99be0; --gp-c6: #5cc4d1; --gp-head: #1d2733; --gp-line: #2f3a47; --kp-on-accent: #0b1a2c; }
+#kp .kp-head { background: var(--gp-navy); color: #ffffff; padding: 18px 20px; border-bottom: 4px solid var(--gp-saffron); align-items: center; }
+#kp .kp-head h1 { color: #ffffff; font-family: inherit; font-weight: 600; font-size: 24px; letter-spacing: 0.01em; }
+#kp .kp-take { color: var(--gp-band-text); }
+#kp .kp-take b { color: #ffffff; }
+#kp .kp-fy { color: var(--gp-band-text); }
+#kp .kp-fy select { background: #ffffff; color: #0b2e59; border-color: #ffffff; border-radius: 3px; font-weight: 600; }
+#kp .kp-tabs { background: var(--color-panel); border: 1px solid var(--gp-line); border-top: 0; padding: 0 8px; margin-bottom: var(--cds-gap-lg); }
+#kp .kp-tab { font-weight: 600; padding: 12px 16px; border-bottom-width: 3px; }
+#kp .kp-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--gp-saffron); }
+#kp .kp-filters, #kp .kp-card, #kp .kp-tile { border-radius: 2px; border-color: var(--gp-line); }
+#kp .kp-filters { border-top: 3px solid var(--gp-c1); }
+#kp .kp-tile { border-left: 4px solid var(--gp-c1); }
+#kp .kp-tile.flag { box-shadow: none; border-left-color: var(--color-bad); }
+#kp .kp-tile .big { font-family: inherit; font-weight: 600; }
+#kp .kp-card-h { background: var(--gp-head); border-bottom-color: var(--gp-line); }
+#kp .kp-card-h h3 { font-weight: 600; }
+#kp .kp-sec { border-left: 4px solid var(--gp-saffron); padding-left: 10px; font-weight: 600; }
+#kp .kp-chip, #kp .kp-badge, #kp .kp-btn { border-radius: 3px; }
+#kp .kp-table th { background: var(--gp-head); }
+#kp .kp-tiles { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.25rem), 1fr)); }
+
 </style>
 
 <div class="kp" id="kp">
   <div class="kp-head">
     <div>
-      <h1 id="title">Karnataka State Pollution Control Board</h1>
-      <p class="kp-take" id="takeaway">In FY 2025-26 the Board received <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</b> consent applications and decided <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</b> of them within the year; <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="pending">—</b> were still under process at year end.</p>
+      <div class="kp-brand"><img src="img/kspcb-logo.png" alt="KSPCB logo" class="kp-logo" width="52" height="52"><h1 id="title">Karnataka State Pollution Control Board</h1></div>
+      <p class="kp-take" id="takeaway">In <span class="fy-label">FY 2025-26</span> the Board received <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</b> consent applications and decided <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</b> of them within the year; <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="pending">—</b> were still under process at year end.</p>
     </div>
-    <div class="kp-legend-note"><span><i class="kp-sw real"></i>Reported, FY 2025-26</span><span><i class="kp-sw samp"></i>Sample data (illustrative)</span></div>
+    <label class="kp-fy" for="fy-select"><span>Financial year</span><select id="fy-select" data-source="ar_enforcement"></select></label>
   </div>
 
   <div class="kp-tabs" role="tablist" id="tabs">
     <button class="kp-tab" role="tab" data-tab="enforcement" aria-selected="true">Enforcement</button>
-    <button class="kp-tab" role="tab" data-tab="monitoring" aria-selected="false">Environmental quality monitoring</button>
+    <button class="kp-tab" role="tab" data-tab="monitoring" aria-selected="false">Monitoring</button>
     <button class="kp-tab" role="tab" data-tab="financials" aria-selected="false">Financials</button>
     <button class="kp-tab" role="tab" data-tab="legal" aria-selected="false">Legal</button>
     <button class="kp-tab" role="tab" data-tab="citizen" aria-selected="false">Citizen corner</button>
@@ -157,8 +189,8 @@
     <!-- ENFORCEMENT -->
     <section class="kp-page" id="enforcement" role="tabpanel">
       <div class="kp-tiles">
-        <div class="kp-tile"><span class="lbl">Operating regulated entities</span><span class="big v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total.operating" data-field="value">—</span><span class="sub">of <span class="v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total" data-field="value">—</span> covered · 31 Mar 2026</span></div>
-        <div class="kp-tile"><span class="lbl">Consent applications received</span><span class="big v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</span><span class="sub">CFE, CFE expansion, CFO · FY 2025-26</span></div>
+        <div class="kp-tile"><span class="lbl">Operating regulated entities</span><span class="big v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total.operating" data-field="value">—</span><span class="sub">of <span class="v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total" data-field="value">—</span> covered · <span class="fy-end-short">31 Mar 2026</span></span></div>
+        <div class="kp-tile"><span class="lbl">Consent applications received</span><span class="big v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</span><span class="sub">CFE, CFE expansion, CFO · <span class="fy-label">FY 2025-26</span></span></div>
         <div class="kp-tile"><span class="lbl">Consent disposal rate</span><span class="big v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</span><span class="sub">Issued + refused ÷ received</span></div>
         <div class="kp-tile flag"><span class="lbl">Units without valid CFO <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expired">—</span><span class="sub">Operating Red/Orange/Green, consent expired</span></div>
         <div class="kp-tile"><span class="lbl">CFO expiring in 90 days <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expiring_90">—</span><span class="sub">Renewal reminders due</span></div>
@@ -168,17 +200,17 @@
       <h2 class="kp-sec">Consent <small>Water Act 1974 · Air Act 1981</small></h2>
       <div class="kp-grid">
         <section class="kp-card" id="card-consent">
-          <header class="kp-card-h"><h3>Consent applications, FY 2025-26</h3><div class="kp-badges"></div></header>
+          <header class="kp-card-h"><h3>Consent applications, <span class="fy-label">FY 2025-26</span></h3><div class="kp-badges"></div></header>
           <div class="kp-card-b">
             <p class="kp-note">Disposal rate is applications issued or refused as a share of those received in the year.</p>
-            <div class="kp-twrap"><table class="kp-table" id="t-consent" data-source="c_consent" data-row-key="type">
+            <div class="kp-twrap"><table class="kp-table" id="t-consent" data-source="c_consent" data-row-key="type,fy">
               <thead><tr><th data-field="type">Type</th><th class="num" data-field="received">Received</th><th class="num" data-field="issued">Issued</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="pending">Under process</th><th class="num" data-field="disposal_rate">Disposal rate</th></tr></thead><tbody></tbody></table></div>
           </div>
         </section>
         <section class="kp-card" id="card-category">
           <header class="kp-card-h"><h3>Industries by category</h3><div class="kp-badges"></div></header>
           <div class="kp-card-b">
-            <p class="kp-note">Units on the register as on 31 March 2026, by CPCB colour category and status. White units need no consent.</p>
+            <p class="kp-note">Units on the register as on <span class="fy-end">31 March 2026</span>, by CPCB colour category and status. White units need no consent.</p>
             <div class="kp-chart dash-skeleton" id="ch-category" data-source="ar_enforcement"></div>
           </div>
         </section>
@@ -219,12 +251,12 @@
         <section class="kp-card wide" id="card-auth">
           <header class="kp-card-h"><h3>Authorisation coverage by waste type</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Partly sample</span></div></header>
           <div class="kp-card-b">
-            <p class="kp-note">Coverage is entities holding a valid authorisation or registration as a share of all entities that need one (authorised + pending + operating without authorisation). Bars under 85% are flagged. Lighter bars include sample figures; BMW is fully reported for FY 2025-26.</p>
+            <p class="kp-note">Coverage is entities holding a valid authorisation or registration as a share of all entities that need one (authorised + pending + operating without authorisation). Bars under 85% are flagged. Lighter bars include sample figures; BMW is fully reported for <span class="fy-label">FY 2025-26</span>.</p>
             <div class="kp-mini">
               <div><h4>Coverage</h4><div class="kp-chart dash-skeleton" id="ch-auth" data-source="c_auth"></div></div>
               <div style="min-width:0">
                 <h4>Breakdown</h4>
-                <div class="kp-twrap"><table class="kp-table" id="t-auth" data-source="c_auth" data-row-key="waste">
+                <div class="kp-twrap"><table class="kp-table" id="t-auth" data-source="c_auth" data-row-key="waste,fy">
                   <thead><tr><th data-field="waste">Waste type</th><th class="num" data-field="required">Need authorisation</th><th class="num" data-field="authorised">Authorised</th><th class="num" data-field="pending">Pending</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="without">Operating without</th><th class="num" data-field="coverage">Coverage</th></tr></thead><tbody></tbody></table></div>
                 <p class="kp-note">Underlined figures are sample data.</p>
               </div>
@@ -279,17 +311,19 @@
       <h2 class="kp-sec">Waste handling <small>Projected vs reported generation vs handled</small></h2>
       <div class="kp-grid">
         <section class="kp-card wide" id="card-waste">
-          <header class="kp-card-h"><h3>Generation and handling by waste type</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Gaps: sample</span></div></header>
+          <header class="kp-card-h"><h3>Waste handled as a share of waste reported</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Partly sample</span></div></header>
           <div class="kp-card-b">
-            <p class="kp-note">Projected comes from authorised quantities in applications; reported from annual returns (BMW Form IV, HWM Form 4, E-waste Form 3); handled is treated, recycled or disposed. Lighter bars are sample values where no reported figure exists. Units differ by stream.</p>
-            <div class="kp-mini" id="waste-mini" data-source="c_waste"></div>
+            <p class="kp-note">Handled (treated, recycled or safely disposed) ÷ reported generation (from annual returns), by waste type. Below 90% is flagged red; lighter bars include sample figures.</p>
+            <div class="kp-chart dash-skeleton" id="ch-ratio" data-source="c_waste"></div>
+            <div class="kp-twrap"><table class="kp-table" id="t-waste" data-source="c_waste" data-row-key="waste,fy">
+              <thead><tr><th data-field="waste">Waste type</th><th data-field="unit">Unit</th><th class="num" data-field="projected">Projected</th><th class="num" data-field="reported">Reported</th><th class="num" data-field="handled">Handled</th><th class="num" data-field="handled_ratio">Handled ÷ reported</th></tr></thead><tbody></tbody></table></div>
           </div>
         </section>
         <section class="kp-card" id="card-facilities">
           <header class="kp-card-h"><h3>Treatment and processing facilities</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span></div></header>
           <div class="kp-card-b">
-            <div class="kp-twrap"><table class="kp-table" id="t-fac" data-source="ar_monitoring" data-row-key="key">
-              <thead><tr><th data-field="waste">Waste type</th><th data-field="item">Facility</th><th class="num" data-field="value">Count</th><th data-field="period">Period</th></tr></thead><tbody></tbody></table></div>
+            <div class="kp-twrap"><table class="kp-table" id="t-fac" data-source="ar_monitoring" data-row-key="key,fy">
+              <thead><tr><th data-field="waste">Waste type</th><th data-field="item">Facility</th><th class="num" data-field="value">Count</th></tr></thead><tbody></tbody></table></div>
           </div>
         </section>
         <section class="kp-card" id="card-hzm">
@@ -314,7 +348,7 @@
         <section class="kp-card" id="card-pm10">
           <header class="kp-card-h"><h3>PM10 annual mean by CAAQMS station</h3><div class="kp-badges"></div></header>
           <div class="kp-card-b">
-            <p class="kp-note">µg/m³, FY 2025-26. The dashed line is the 60 µg/m³ annual standard (NAAQS 2009).</p>
+            <p class="kp-note">µg/m³, <span class="fy-label">FY 2025-26</span>. The dashed line is the 60 µg/m³ annual standard (NAAQS 2009).</p>
             <div class="kp-chart dash-skeleton" id="ch-pm10" data-source="ar_pm10"></div>
           </div>
         </section>
@@ -328,7 +362,7 @@
         <section class="kp-card" id="card-stations">
           <header class="kp-card-h"><h3>Water quality stations and Bengaluru sewage</h3><div class="kp-badges"></div></header>
           <div class="kp-card-b">
-            <div class="kp-mini">
+            <div style="display: flex; flex-direction: column; gap: var(--cds-gap-lg)">
               <div><h4>Stations by water body <span>count</span></h4><div class="kp-chart dash-skeleton" id="ch-wq" data-source="ar_monitoring"></div></div>
               <div><h4>Bengaluru sewage <span>MLD</span></h4><div class="kp-chart dash-skeleton" id="ch-sewage" data-source="ar_monitoring"></div></div>
             </div>
@@ -341,7 +375,7 @@
         <section class="kp-card" id="card-labs">
           <header class="kp-card-h"><h3>Samples analysed by laboratory</h3><div class="kp-badges"></div></header>
           <div class="kp-card-b">
-            <p class="kp-note">Total <b class="v dash-skeleton" data-source="ar_monitoring" data-where="key=lab.total" data-field="value">—</b> samples in FY 2025-26.</p>
+            <p class="kp-note">Total <b class="v dash-skeleton" data-source="ar_monitoring" data-where="key=lab.total" data-field="value">—</b> samples in <span class="fy-label">FY 2025-26</span>.</p>
             <div class="kp-chart dash-skeleton" id="ch-labs" data-source="ar_labs"></div>
           </div>
         </section>
@@ -349,7 +383,7 @@
           <header class="kp-card-h"><h3>Laboratory quality</h3><div class="kp-badges"><span class="kp-badge sample">Others: sample</span></div></header>
           <div class="kp-card-b">
             <p class="kp-note">Accreditation status, share of samples failing standards, and parameters tested against those prescribed.</p>
-            <div class="kp-twrap"><table class="kp-table" id="t-labs" data-source="c_labs" data-row-key="lab">
+            <div class="kp-twrap"><table class="kp-table" id="t-labs" data-source="c_labs" data-row-key="lab,fy">
               <thead><tr><th data-field="lab">Lab</th><th class="num" data-field="samples">Samples</th><th data-field="nabl">NABL</th><th class="num" data-field="fail_share">Failing</th><th class="num" data-field="param_coverage">Parameters</th></tr></thead><tbody></tbody></table></div>
           </div>
         </section>
@@ -359,7 +393,7 @@
     <!-- FINANCIALS -->
     <section class="kp-page" id="financials" role="tabpanel" hidden>
       <div class="kp-tiles">
-        <div class="kp-tile"><span class="lbl">Total receipts</span><span class="big v dash-skeleton" data-source="c_fin" data-field="receipts" data-fmt="lakh">—</span><span class="sub">Rs lakh · FY 2025-26</span></div>
+        <div class="kp-tile"><span class="lbl">Total receipts</span><span class="big v dash-skeleton" data-source="c_fin" data-field="receipts" data-fmt="lakh">—</span><span class="sub">Rs lakh · <span class="fy-label">FY 2025-26</span></span></div>
         <div class="kp-tile"><span class="lbl">Consent and authorisation fees</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=fin.rec.fees" data-field="value" data-fmt="lakh">—</span><span class="sub"><span class="v dash-skeleton" data-source="c_fin" data-field="fee_share" data-fmt="pct">—</span> of receipts</span></div>
         <div class="kp-tile"><span class="lbl">Total expenditure</span><span class="big v dash-skeleton" data-source="c_fin" data-field="expenditure" data-fmt="lakh">—</span><span class="sub">Rs lakh</span></div>
         <div class="kp-tile"><span class="lbl">Surplus for the year</span><span class="big v dash-skeleton" data-source="c_fin" data-field="surplus" data-fmt="lakh">—</span><span class="sub">Rs lakh, receipts less expenditure</span></div>
@@ -369,11 +403,11 @@
       <div class="kp-grid">
         <section class="kp-card" id="card-receipts">
           <header class="kp-card-h"><h3>Receipts by head</h3><div class="kp-badges"></div></header>
-          <div class="kp-card-b"><p class="kp-note">Rs lakh, FY 2025-26. Water cess is no longer released to the Board after GST.</p><div class="kp-chart dash-skeleton" id="ch-receipts" data-source="ar_flc"></div></div>
+          <div class="kp-card-b"><p class="kp-note">Rs lakh, <span class="fy-label">FY 2025-26</span>. Water cess is no longer released to the Board after GST.</p><div class="kp-chart dash-skeleton" id="ch-receipts" data-source="ar_flc"></div></div>
         </section>
         <section class="kp-card" id="card-expend">
           <header class="kp-card-h"><h3>Expenditure by head</h3><div class="kp-badges"></div></header>
-          <div class="kp-card-b"><p class="kp-note">Rs lakh, FY 2025-26.</p><div class="kp-chart dash-skeleton" id="ch-expend" data-source="ar_flc"></div></div>
+          <div class="kp-card-b"><p class="kp-note">Rs lakh, <span class="fy-label">FY 2025-26</span>.</p><div class="kp-chart dash-skeleton" id="ch-expend" data-source="ar_flc"></div></div>
         </section>
       </div>
       <h2 class="kp-sec">Environmental compensation and penalties</h2>
@@ -400,7 +434,7 @@
       <div class="kp-tiles">
         <div class="kp-tile flag"><span class="lbl">Court cases pending</span><span class="big v dash-skeleton" data-source="c_legal" data-field="cases_pending">—</span><span class="sub">all forums, since inception</span></div>
         <div class="kp-tile"><span class="lbl">NGT cases pending</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=leg.ngt" data-field="pending">—</span><span class="sub">of <span class="v dash-skeleton" data-source="ar_flc" data-where="key=leg.ngt" data-field="filed">—</span> filed</span></div>
-        <div class="kp-tile"><span class="lbl">Closure directions issued</span><span class="big v dash-skeleton" data-source="c_legal" data-field="closures_issued">—</span><span class="sub"><span class="v dash-skeleton" data-source="c_legal" data-field="closures_revoked">—</span> revoked · FY 2025-26</span></div>
+        <div class="kp-tile"><span class="lbl">Closure directions issued</span><span class="big v dash-skeleton" data-source="c_legal" data-field="closures_issued">—</span><span class="sub"><span class="v dash-skeleton" data-source="c_legal" data-field="closures_revoked">—</span> revoked · <span class="fy-label">FY 2025-26</span></span></div>
         <div class="kp-tile"><span class="lbl">Personal hearings held</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=leg.hear.personal" data-field="value">—</span><span class="sub">FY 2025-26</span></div>
         <div class="kp-tile"><span class="lbl">EIA public hearings</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=leg.hear.public" data-field="value">—</span><span class="sub">FY 2025-26</span></div>
       </div>
@@ -409,7 +443,7 @@
         <section class="kp-card" id="card-cases">
           <header class="kp-card-h"><h3>Cases by forum</h3><div class="kp-badges"></div></header>
           <div class="kp-card-b">
-            <p class="kp-note">Cumulative from inception to 31 March 2026.</p>
+            <p class="kp-note">Cumulative from inception to <span class="fy-end">31 March 2026</span>.</p>
             <div class="kp-chart dash-skeleton" id="ch-cases" data-source="ar_flc"></div>
           </div>
         </section>
@@ -424,7 +458,7 @@
           <header class="kp-card-h"><h3>Upcoming hearings</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
           <div class="kp-card-b">
             <p class="kp-note">Next listed date and stage. References are placeholders until the legal cell's register is connected.</p>
-            <div class="kp-twrap"><table class="kp-table" id="t-hearings" data-source="s_legal_fin_cit" data-row-key="id">
+            <div class="kp-twrap"><table class="kp-table" id="t-hearings" data-source="s_legal_fin_cit" data-row-key="id,fy">
               <thead><tr><th data-field="next_date">Next date</th><th data-field="name">Reference</th><th data-field="forum">Forum</th><th data-field="subject">Subject</th><th data-field="zone">Zone</th><th data-field="stage">Stage</th></tr></thead><tbody></tbody></table></div>
           </div>
         </section>
@@ -454,7 +488,7 @@
           <header class="kp-card-h"><h3>Complaints by pollution type</h3><div class="kp-badges"><span class="kp-badge sample">Sample split</span></div></header>
           <div class="kp-card-b">
             <p class="kp-note">Only totals are reported; this split and the resolution times are illustrative.</p>
-            <div class="kp-twrap"><table class="kp-table" id="t-cmp" data-source="s_legal_fin_cit" data-row-key="id">
+            <div class="kp-twrap"><table class="kp-table" id="t-cmp" data-source="s_legal_fin_cit" data-row-key="id,fy">
               <thead><tr><th data-field="name">Type</th><th class="num" data-field="received">Received</th><th class="num" data-field="resolved">Resolved</th><th class="num" data-field="avg_days">Avg days to resolve</th></tr></thead><tbody></tbody></table></div>
           </div>
         </section>
@@ -478,7 +512,6 @@
 (function () {
   const W = ['All', 'BMW', 'PWM', 'C&D', 'HZM', 'E-waste', 'SWM'];
   const root = document.getElementById('kp');
-  root.style.setProperty('--kp-accent', dash.colors[0]);
   const IN = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
   const IN1 = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 });
   const IN2 = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -493,8 +526,15 @@
     return isNaN(n) ? String(v) : IN.format(n);
   };
   window.kpFmt = fmt;
-  const rowsOf = (id) => { const d = dash.data(id); return d.status === 'ok' && Array.isArray(d.data) ? d.data : null; };
+  // ---- financial year: every dataset except the office list and the map carries an fy column
+  const yearsOf = () => { const d = dash.data('ar_enforcement'); return d.status === 'ok' ? [...new Set(d.data.map((r) => r.fy))].sort() : []; };
+  const fyNow = () => { const ys = yearsOf(), p = dash.params().fy; return ys.includes(p) ? p : (ys.at(-1) || p || '2025-26'); };
+  window.kpFy = fyNow;
+  const hasFy = (rows) => rows.length > 0 && rows[0].fy !== undefined;
+  const rowsOf = (id) => { const d = dash.data(id); if (d.status !== 'ok' || !Array.isArray(d.data)) return null; return hasFy(d.data) ? d.data.filter((r) => r.fy === fyNow()) : d.data; };
   window.kpRows = rowsOf;
+  const fySel = document.getElementById('fy-select');
+  fySel.addEventListener('change', () => dash.setParams({ fy: fySel.value }));
 
   // ---- filter state
   const waste = () => { const w = dash.params().waste; return W.includes(w) ? w : 'All'; };
@@ -520,13 +560,18 @@
   // ---- generic value fill
   window.kpFill = () => {
     const w = waste();
-    root.querySelectorAll('.pipe-tile').forEach((el) => el.setAttribute('data-where', 'waste=' + encodeURIComponent(w) + '&level=total'));
-    root.querySelectorAll('.ec-tile').forEach((el) => el.setAttribute('data-where', 'waste=' + encodeURIComponent(w)));
+    root.querySelectorAll('.pipe-tile').forEach((el) => { el.dataset.baseWhere = 'waste=' + encodeURIComponent(w) + '&level=total'; });
+    root.querySelectorAll('.ec-tile').forEach((el) => { el.dataset.baseWhere = 'waste=' + encodeURIComponent(w); });
+    const fy = fyNow();
     root.querySelectorAll('.v[data-source]').forEach((el) => {
       const d = dash.data(el.dataset.source);
       if (d.status !== 'ok') { el.textContent = '—'; if (d.status !== 'loading') el.classList.remove('dash-skeleton'); return; }
       el.classList.remove('dash-skeleton');
       const rows = Array.isArray(d.data) ? d.data : [];
+      if (hasFy(rows)) {
+        if (el.dataset.baseWhere === undefined) el.dataset.baseWhere = (el.dataset.where || '').replace(/(^|&)fy=[^&]*/, '');
+        el.setAttribute('data-where', (el.dataset.baseWhere ? el.dataset.baseWhere + '&' : '') + 'fy=' + encodeURIComponent(fy));
+      }
       let row;
       if (el.dataset.where) {
         const conds = el.dataset.where.split('&').map((p) => p.split('=').map(decodeURIComponent));
@@ -534,6 +579,13 @@
       } else row = rows[Number(el.dataset.row || 0)];
       el.textContent = fmt(row ? row[el.dataset.field] : null, el.dataset.fmt);
     });
+    const ys = yearsOf();
+    if (fySel.options.length !== ys.length) fySel.replaceChildren(...ys.map((y) => new Option('FY ' + y, y)));
+    fySel.value = fy;
+    const endYear = Number(fy.slice(0, 4)) + 1;
+    root.querySelectorAll('.fy-label').forEach((s) => { s.textContent = 'FY ' + fy; });
+    root.querySelectorAll('.fy-end').forEach((s) => { s.textContent = '31 March ' + endYear; });
+    root.querySelectorAll('.fy-end-short').forEach((s) => { s.textContent = '31 Mar ' + endYear; });
     chips.querySelectorAll('.kp-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.w === w)));
     root.querySelectorAll('.kp-badge.wf').forEach((b) => { b.hidden = w === 'All'; b.textContent = 'Waste type: ' + w; });
   };
@@ -580,7 +632,7 @@
     meas.remove();
     const left = labMax + 10, right = Math.max(10, valW + 4);
     const grouped = !o.stacked && S.length > 1;
-    const bh = o.barH || (grouped ? 10 : 16), band = grouped ? S.length * (bh + 2) : bh, gap = grouped ? 12 : 8;
+    const bh = o.barH || (grouped ? 14 : 22), band = grouped ? S.length * (bh + 3) : bh, gap = grouped ? 16 : 10;
     const top = o.ref ? 16 : 2, H = top + rows.length * (band + gap) + 20;
     svg.attr('viewBox', `0 0 ${Wd} ${H}`).attr('height', H);
     const maxV = o.max || d3.max([d3.max(rows, (r) => o.stacked ? d3.sum(S, (s) => +r[s.f] || 0) : d3.max(S, (s) => +r[s.f] || 0)), o.ref ? o.ref.value : 0]) || 1;
@@ -641,7 +693,7 @@
     if (!o.rows.length) { const m = document.createElement('div'); m.className = 'kp-empty'; m.textContent = o.empty || 'Nothing to show for this waste type'; el.appendChild(m); return; }
     const probe = document.createElement('span'); el.appendChild(probe);
     const cc = (v) => { probe.style.color = v; return getComputedStyle(probe).color; };
-    const base = cc('var(--color-panel)'), acc = cc(dash.colors[0]), crit = cc('var(--cds-chart-status-critical)'), fg = cc('var(--color-fg)');
+    const base = cc('var(--color-panel)'), acc = cc('var(--gp-c1)'), crit = cc('var(--cds-chart-status-critical)'), fg = cc('var(--color-fg)');
     probe.remove();
     const sk = (r, c, ci) => (o.scaleKey ? o.scaleKey(r) : '') + '|' + (o.perCol || c.own ? ci : 'g');
     const ext = new Map();
@@ -695,11 +747,14 @@
     tbl.appendChild(tb); el.append(tbl, tip);
   };
 
-  window.kpTable = (tbl, rows, cols, keyF) => {
+  // A row's key from the table's data-row-key columns, each part percent-encoded when there are two.
+  window.kpKey = (tbl, r) => { const ks = tbl.dataset.rowKey.split(','); return ks.length > 1 ? ks.map((k) => encodeURIComponent(r[k])).join(',') : String(r[ks[0]]); };
+
+  window.kpTable = (tbl, rows, cols) => {
     const tb = tbl.querySelector('tbody');
     tb.replaceChildren(...rows.map((r) => {
       const tr = document.createElement('tr');
-      if (keyF) tr.dataset.key = keyF(r);
+      tr.dataset.key = window.kpKey(tbl, r);
       if (r.type === 'All' || r.zone === 'All zones') tr.className = 'total';
       cols.forEach((c) => {
         const td = document.createElement('td');
@@ -720,18 +775,22 @@ dash.calc('c_consent', {
   inputs: ['ar_enforcement'], title: 'Consent applications by type',
   description: 'Received, issued, refused and under process per consent type, with disposal rate = (issued + refused) / received, plus an All row.',
   fn: (ar_enforcement) => {
+    const one = (ar_enforcement) => {
     const get = (g, i) => { const r = ar_enforcement.find((x) => x.metric === 'Consent applications' && x.group === g && x.item === i); return r ? Number(r.value) : 0; };
     const rows = ['CFE', 'CFE Expansion', 'CFO'].map((t) => ({ type: t, received: get(t, 'Received'), issued: get(t, 'Issued'), refused: get(t, 'Refused'), pending: get(t, 'Under process') }));
     const s = (k) => rows.reduce((a, r) => a + r[k], 0);
     rows.push({ type: 'All', received: s('received'), issued: s('issued'), refused: s('refused'), pending: s('pending') });
     rows.forEach((r) => { r.disposal_rate = r.received ? (r.issued + r.refused) / r.received : null; });
     return rows;
+  };
+    return [...new Set(ar_enforcement.map((r) => r.fy))].flatMap((fy) => one(ar_enforcement.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
 dash.calc('c_auth', {
   inputs: ['ar_enforcement', 's_auth'], title: 'Authorisation coverage by waste type',
   description: 'Per waste type: authorised (reported where available), pending, refused and operating without authorisation; need authorisation = authorised + pending + without; coverage = authorised ÷ need. BMW uses reported figures throughout; other gaps come from the sample file.',
   fn: (ar_enforcement, s_auth) => {
+    const one = (ar_enforcement, s_auth) => {
     const v = (k) => { const r = ar_enforcement.find((x) => x.key === k); return r ? Number(r.value) : null; };
     const out = [{ waste: 'BMW', rules: 'Bio-Medical Waste Management Rules, 2016', authorised: v('auth.bmw.granted'), pending: v('auth.bmw.pending'), refused: v('auth.bmw.rejected'), without: v('auth.bmw.yettoapply'), sample_fields: '' }];
     const reported = { HZM: v('auth.hzm.generators'), PWM: v('auth.pwm.brandowners') + v('auth.pwm.producers') + v('auth.pwm.importers') + v('auth.pwm.processors'), 'E-waste': v('auth.ew.working'), 'C&D': v('auth.cd.facilities') };
@@ -741,12 +800,15 @@ dash.calc('c_auth', {
     });
     out.forEach((r) => { r.required = r.authorised + r.pending + r.without; r.coverage = r.authorised / r.required; });
     return out;
+  };
+    return [...new Set(ar_enforcement.map((r) => r.fy))].flatMap((fy) => one(ar_enforcement.filter((r) => r.fy === fy), s_auth.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
 dash.calc('c_validity', {
   inputs: ['s_validity'], title: 'Validity bands by register',
   description: 'Units per register in each validity band, their shares, and expired / expiring-in-90-days totals; All CFO sums the three CFO registers.',
   fn: (s_validity) => {
+    const one = (s_validity) => {
     const bands = [['valid', 'Valid, over 90 days'], ['exp30', 'Expiring within 30 days'], ['exp90', 'Expiring in 31–90 days'], ['ex1', 'Expired under 1 year'], ['ex3', 'Expired 1–3 years'], ['exmore', 'Expired over 3 years'], ['nodate', 'No validity date recorded']];
     const make = (module, waste, rs) => {
       const o = { module, waste }; let t = 0;
@@ -759,12 +821,15 @@ dash.calc('c_validity', {
     const out = mods.map((m) => { const rs = s_validity.filter((r) => r.module === m); return make(m, rs[0].waste, rs); });
     out.push(make('All CFO', '', s_validity.filter((r) => r.consent === true || r.consent === 'true')));
     return out;
+  };
+    return [...new Set(s_validity.map((r) => r.fy))].flatMap((fy) => one(s_validity.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
 dash.calc('c_pipeline', {
   inputs: ['s_pipeline'], title: 'Open applications by stage and module',
   description: 'Open applications and those past the Sakala limit, summed per waste type (All includes consents) at total, stage and module level.',
   fn: (s_pipeline) => {
+    const one = (s_pipeline) => {
     const stages = ['Scrutiny at RO', 'Query raised (QUE)', 'Reply received (REP)', 'e-Sign pending', 'Payment pending', 'Inspection', 'Scrutiny at HO', 'Consent Committee'];
     const agg = (rs) => { const open = rs.reduce((a, r) => a + Number(r.open), 0), over = rs.reduce((a, r) => a + Number(r.over_sla), 0); return { open, over_sla: over, within: open - over, over_share: open ? over / open : null }; };
     const out = [];
@@ -775,12 +840,15 @@ dash.calc('c_pipeline', {
       [...new Set(rs.map((r) => r.module))].forEach((m) => out.push(Object.assign({ waste: w, level: 'module', name: m }, agg(rs.filter((r) => r.module === m)))));
     });
     return out;
+  };
+    return [...new Set(s_pipeline.map((r) => r.fy))].flatMap((fy) => one(s_pipeline.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
 dash.calc('c_insp', {
   inputs: ['ar_zones', 's_inspections'], title: 'Zone summary',
   description: 'Per zone: reported units, inspections, ISO units and complaints; coverage = inspections done ÷ sample due; pending ratio = (due − done) ÷ due; workload = operating Red + Orange units ÷ sample field officers; complaints resolved ÷ received. Plus an All zones row.',
   fn: (ar_zones, s_inspections) => {
+    const one = (ar_zones, s_inspections) => {
     const rows = ar_zones.map((z) => {
       const s = s_inspections.find((r) => r.dim === 'zone' && r.name === z.zone) || {};
       const red = Number(z.red_operating), orange = Number(z.orange_operating), done = Number(z.inspections), due = Number(s.due), officers = Number(s.officers);
@@ -793,12 +861,15 @@ dash.calc('c_insp', {
     all.coverage = all.done / all.due; all.pending_ratio = (all.due - all.done) / all.due; all.units_per_officer = all.red_orange_units / all.officers; all.complaint_ratio = all.complaints_resolved / all.complaints_received;
     rows.push(all);
     return rows;
+  };
+    return [...new Set(ar_zones.map((r) => r.fy))].flatMap((fy) => one(ar_zones.filter((r) => r.fy === fy), s_inspections.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
 dash.calc('c_pipe_zone', {
   inputs: ['s_pipeline_ro'], title: 'Application status by zone and RO',
   description: 'Sample open applications and those past the Sakala limit, summed per waste type (All includes consents) for each zone and regional office, by processing stage and across all stages; share = past limit ÷ open.',
   fn: (s_pipeline_ro) => {
+    const one = (s_pipeline_ro) => {
     const out = [];
     ['All', 'BMW', 'PWM', 'C&D', 'HZM', 'E-waste', 'SWM'].forEach((w) => {
       const rs = w === 'All' ? s_pipeline_ro : s_pipeline_ro.filter((r) => r.waste === w);
@@ -812,73 +883,96 @@ dash.calc('c_pipe_zone', {
       m.forEach((o) => { o.over_share = o.open ? o.over_sla / o.open : null; out.push(o); });
     });
     return out;
+  };
+    return [...new Set(s_pipeline_ro.map((r) => r.fy))].flatMap((fy) => one(s_pipeline_ro.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
 dash.calc('c_waste', {
   inputs: ['ar_monitoring', 's_waste'], title: 'Waste generation vs handling',
-  description: 'Per waste type: projected (sample), reported and handled (reported figures where available, else sample), and handling gap = (reported − handled) / reported.',
-  fn: (ar_monitoring, s_waste) => ['BMW', 'PWM', 'C&D', 'HZM', 'E-waste', 'SWM'].map((w) => {
+  description: 'Per waste type: projected (sample), reported and handled (reported figures where available, else sample), handling gap = (reported − handled) / reported, and handled ratio = handled / reported.',
+  fn: (ar_monitoring, s_waste) => {
+    const one = (ar_monitoring, s_waste) => ['BMW', 'PWM', 'C&D', 'HZM', 'E-waste', 'SWM'].map((w) => {
     const real = (item) => ar_monitoring.find((r) => r.metric === 'Waste handling' && r.waste === w && r.item === item);
     const samp = (st) => s_waste.find((r) => r.waste === w && r.stage === st);
     const rep = real('Reported generated'), han = real('Handled'), proj = samp('Projected');
     const rep2 = rep || samp('Reported generated'), han2 = han || samp('Handled');
     const reported = rep2 ? Number(rep2.value) : null, handled = han2 ? Number(han2.value) : null;
-    return { waste: w, unit: (rep2 || proj).unit, period: rep ? rep.period : 'Sample', projected: proj ? Number(proj.value) : null, reported, handled, reported_is_sample: !rep, handled_is_sample: !han, handling_gap: reported ? (reported - handled) / reported : null };
-  }),
+    return { waste: w, unit: (rep2 || proj).unit, period: rep ? rep.period : 'Sample', projected: proj ? Number(proj.value) : null, reported, handled, reported_is_sample: !rep, handled_is_sample: !han, handling_gap: reported ? (reported - handled) / reported : null, handled_ratio: reported ? handled / reported : null };
+  });
+    return [...new Set(ar_monitoring.map((r) => r.fy))].flatMap((fy) => one(ar_monitoring.filter((r) => r.fy === fy), s_waste.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
+  },
 });
 dash.calc('c_labs', {
   inputs: ['ar_labs', 's_labs_sites'], title: 'Laboratory quality',
   description: 'Reported samples analysed per lab joined with sample NABL status, failure share and parameters tested ÷ prescribed.',
-  fn: (ar_labs, s_labs_sites) => ar_labs.map((l) => {
+  fn: (ar_labs, s_labs_sites) => {
+    const one = (ar_labs, s_labs_sites) => ar_labs.map((l) => {
     const s = s_labs_sites.find((r) => r.kind === 'lab' && r.name === l.lab) || {};
     return { lab: l.lab, type: l.type, samples: Number(l.samples), nabl: s.nabl, fail_share: Number(s.fail_share), params_tested: Number(s.params_tested), params_prescribed: Number(s.params_prescribed), param_coverage: Number(s.params_tested) / Number(s.params_prescribed) };
-  }),
+  });
+    return [...new Set(ar_labs.map((r) => r.fy))].flatMap((fy) => one(ar_labs.filter((r) => r.fy === fy), s_labs_sites.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
+  },
 });
 dash.calc('c_pm', {
   inputs: ['ar_pm10'], title: 'Stations above PM10 standard',
   description: 'Count of CAAQMS stations whose annual PM10 mean exceeds the 60 µg/m³ NAAQS annual standard.',
-  fn: (ar_pm10) => [{ over_standard: ar_pm10.filter((r) => Number(r.pm10) > 60).length, stations: ar_pm10.length }],
+  fn: (ar_pm10) => {
+    const one = (ar_pm10) => [{ over_standard: ar_pm10.filter((r) => Number(r.pm10) > 60).length, stations: ar_pm10.length }];
+    return [...new Set(ar_pm10.map((r) => r.fy))].flatMap((fy) => one(ar_pm10.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
+  },
 });
 dash.calc('c_fin', {
-  inputs: ['ar_flc'], title: 'Board finances, FY 2025-26',
+  inputs: ['ar_flc'], title: 'Board finances by year',
   description: 'Total receipts and expenditure, surplus = receipts − expenditure, fee share of receipts, and Chandapura EC recovered ÷ levied.',
   fn: (ar_flc) => {
+    const one = (ar_flc) => {
     const v = (k) => Number((ar_flc.find((r) => r.key === k) || {}).value);
     const rec = v('fin.rec.total'), exp = v('fin.exp.total');
     return [{ receipts: rec, expenditure: exp, surplus: rec - exp, fee_share: v('fin.rec.fees') / rec, ec_recovery_chandapura: v('fin.ec.chandapura.recovered') / v('fin.ec.chandapura.levied') }];
+  };
+    return [...new Set(ar_flc.map((r) => r.fy))].flatMap((fy) => one(ar_flc.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
 dash.calc('c_ec', {
   inputs: ['s_legal_fin_cit'], title: 'Environmental compensation realisation',
   description: 'Sample EC imposed and realised per waste type, realisation = realised / imposed, plus an All row.',
   fn: (s_legal_fin_cit) => {
+    const one = (s_legal_fin_cit) => {
     const rs = s_legal_fin_cit.filter((r) => r.kind === 'ec').map((r) => ({ waste: r.waste, imposed: Number(r.imposed), realised: Number(r.realised), realisation: Number(r.realised) / Number(r.imposed) }));
     const i = rs.reduce((a, r) => a + r.imposed, 0), re = rs.reduce((a, r) => a + r.realised, 0);
     rs.push({ waste: 'All', imposed: i, realised: re, realisation: re / i });
     return rs;
+  };
+    return [...new Set(s_legal_fin_cit.map((r) => r.fy))].flatMap((fy) => one(s_legal_fin_cit.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
 dash.calc('c_legal', {
   inputs: ['ar_flc'], title: 'Legal totals',
   description: 'Court cases filed and pending summed across forums; closure directions issued and revoked summed across Acts.',
   fn: (ar_flc) => {
+    const one = (ar_flc) => {
     const c = ar_flc.filter((r) => r.metric === 'Court cases'), d = ar_flc.filter((r) => r.metric === 'Closure directions');
     return [{ cases_filed: c.reduce((a, r) => a + Number(r.filed), 0), cases_pending: c.reduce((a, r) => a + Number(r.pending), 0), closures_issued: d.reduce((a, r) => a + Number(r.issued), 0), closures_revoked: d.reduce((a, r) => a + Number(r.revoked), 0) }];
+  };
+    return [...new Set(ar_flc.map((r) => r.fy))].flatMap((fy) => one(ar_flc.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
 dash.calc('c_cit', {
   inputs: ['ar_flc'], title: 'Complaint and RTI disposal',
   description: 'Complaints resolved ÷ (opening pending + received); RTI disposed ÷ received.',
   fn: (ar_flc) => {
+    const one = (ar_flc) => {
     const v = (k) => Number((ar_flc.find((r) => r.key === k) || {}).value);
     return [{ resolution_rate: v('cit.resolved') / (v('cit.opening') + v('cit.received')), rti_disposal: v('cit.rti.disposed') / v('cit.rti.received') }];
+  };
+    return [...new Set(ar_flc.map((r) => r.fy))].flatMap((fy) => one(ar_flc.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
 </script>
 
 <script>
 (function () {
-  const C = dash.colors, fmt = window.kpFmt, rowsOf = window.kpRows, bar = window.kpBar, st = window.kpState, tab = window.kpTable;
+  const C = ['var(--gp-c1)', 'var(--gp-saffron)', 'var(--gp-c3)', 'var(--gp-c4)', 'var(--color-bad)', 'var(--gp-c6)', 'var(--color-warn)', 'var(--cds-chart-muted)'], fmt = window.kpFmt, rowsOf = window.kpRows, bar = window.kpBar, st = window.kpState, tab = window.kpTable;
   const $ = (id) => document.getElementById(id);
   const visible = (el) => !el.closest('.kp-page').hidden;
   const pct = (v) => fmt(v, 'pct0');
@@ -890,7 +984,7 @@ dash.calc('c_cit', {
     const W = el.clientWidth; if (!W) return;
     const probe = document.createElement('span'); el.appendChild(probe);
     const cc = (v) => { probe.style.color = v; return getComputedStyle(probe).color; };
-    const base = cc('var(--color-panel)'), top = cc(m === 'officers' ? dash.colors[0] : 'var(--cds-chart-status-critical)'), muted = cc('var(--cds-chart-muted)'), fg = cc('var(--color-fg)');
+    const base = cc('var(--color-panel)'), top = cc(m === 'officers' ? 'var(--gp-c1)' : 'var(--cds-chart-status-critical)'), muted = cc('var(--cds-chart-muted)'), fg = cc('var(--color-fg)');
     probe.remove();
     const byZone = new Map(ZS.filter((z) => z.zone !== 'All zones').map((z) => [z.zone, z]));
     const vals = [...byZone.values()].map((z) => +z[m]);
@@ -1004,6 +1098,7 @@ dash.calc('c_cit', {
       const tb = $('t-auth').querySelector('tbody');
       tb.replaceChildren(...rows.map((r) => {
         const tr = document.createElement('tr');
+        tr.dataset.key = window.kpKey($('t-auth'), r);
         [['waste'], ['required', 1], ['authorised', 1], ['pending', 1], ['refused', 1], ['without', 1], ['coverage', 1]].forEach(([f, num]) => {
           const td = document.createElement('td');
           td.textContent = f === 'waste' ? r.waste : f === 'coverage' ? fmt(r.coverage, 'pct') : fmt(r[f]);
@@ -1014,7 +1109,7 @@ dash.calc('c_cit', {
         });
         return tr;
       }));
-      if (visible($('ch-auth')) && st($('ch-auth'), 'c_auth')) bar($('ch-auth'), rows.slice().sort((a, b) => a.coverage - b.coverage), { label: (r) => r.waste, max: 1, fmt: (v) => fmt(v, 'pct'), tickFmt: pct, ref: { value: 0.85, label: '85%' }, series: [{ f: 'coverage', name: 'Coverage', color: C[0], sample: (r) => !!r.sample_fields, colorFn: (r) => (r.coverage < 0.85 ? 'var(--cds-chart-status-critical)' : C[0]) }], tipExtra: (r) => [['Authorised', fmt(r.authorised)], ['Need authorisation', fmt(r.required)], ['Operating without', fmt(r.without)], ['Rules', r.rules], ['Source', r.sample_fields ? 'Partly sample' : 'Reported, FY 2025-26']] });
+      if (visible($('ch-auth')) && st($('ch-auth'), 'c_auth')) bar($('ch-auth'), rows.slice().sort((a, b) => a.coverage - b.coverage), { label: (r) => r.waste, max: 1, fmt: (v) => fmt(v, 'pct'), tickFmt: pct, ref: { value: 0.85, label: '85%' }, series: [{ f: 'coverage', name: 'Coverage', color: C[0], sample: (r) => !!r.sample_fields, colorFn: (r) => (r.coverage < 0.85 ? 'var(--cds-chart-status-critical)' : C[0]) }], tipExtra: (r) => [['Authorised', fmt(r.authorised)], ['Need authorisation', fmt(r.required)], ['Operating without', fmt(r.without)], ['Rules', r.rules], ['Source', r.sample_fields ? 'Partly sample' : 'Reported, FY ' + window.kpFy()]] });
     }
 
     if (visible($('ch-validity')) && st($('ch-validity'), 'c_validity')) {
@@ -1065,33 +1160,22 @@ dash.calc('c_cit', {
     }
 
     // Monitoring
-    const mini = $('waste-mini');
-    if (visible(mini)) {
-      const d = dash.data('c_waste');
-      mini.replaceChildren();
-      if (d.status === 'ok') {
-        mini.classList.remove('dash-skeleton');
-        d.data.filter((r) => wOk(r, w)).forEach((r) => {
-          const box = document.createElement('div');
-          const h = document.createElement('h4'); h.textContent = r.waste; const u = document.createElement('span'); u.textContent = r.unit + (r.handling_gap != null ? ' · gap ' + fmt(r.handling_gap, 'pct0') : ''); h.appendChild(u);
-          const ch = document.createElement('div'); ch.className = 'kp-chart'; ch.style.minHeight = '96px';
-          box.append(h, ch); mini.appendChild(box);
-          const rows = [{ k: 'Projected', v: r.projected, s: true }, { k: 'Reported', v: r.reported, s: r.reported_is_sample }, { k: 'Handled', v: r.handled, s: r.handled_is_sample }];
-          bar(ch, rows, { label: (x) => x.k, series: [{ f: 'v', name: r.unit, color: C[0], sample: (x) => x.s }], tipExtra: (x) => [['Source', x.s ? 'Sample' : 'Reported (' + r.period + ')']] });
-        });
-      } else st(mini, 'c_waste');
+    const WR = rowsOf('c_waste');
+    if (visible($('ch-ratio')) && st($('ch-ratio'), 'c_waste')) {
+      bar($('ch-ratio'), WR.filter((r) => wOk(r, w)).slice().sort((a, b) => a.handled_ratio - b.handled_ratio), { label: (r) => r.waste, max: 1, fmt: (v) => fmt(v, 'pct0'), tickFmt: pct, ref: { value: 0.9, label: 'Target 90%' }, barH: 26, series: [{ f: 'handled_ratio', name: 'Handled ÷ reported', color: C[0], sample: (r) => r.reported_is_sample || r.handled_is_sample, colorFn: (r) => (r.handled_ratio < 0.9 ? 'var(--cds-chart-status-critical)' : C[0]) }], tipExtra: (r) => [['Reported', fmt(r.reported) + ' ' + r.unit], ['Handled', fmt(r.handled) + ' ' + r.unit], ['Source', r.reported_is_sample || r.handled_is_sample ? 'Partly sample' : 'Reported']] });
     }
+    if (WR) tab($('t-waste'), WR.filter((r) => wOk(r, w)), [{ f: 'waste' }, { f: 'unit' }, { f: 'projected', num: 1, fmt: (v) => fmt(v) }, { f: 'reported', num: 1, fmt: (v) => fmt(v) }, { f: 'handled', num: 1, fmt: (v) => fmt(v) }, { f: 'handled_ratio', num: 1, fmt: (v) => fmt(v, 'pct0') }]);
     const M = rowsOf('ar_monitoring');
-    if (M) tab($('t-fac'), M.filter((r) => r.metric === 'Facilities' && wOk(r, w)), [{ f: 'waste' }, { f: 'item' }, { f: 'value', num: 1, fmt: (v) => fmt(v) }, { f: 'period' }], (r) => r.key);
+    if (M) tab($('t-fac'), M.filter((r) => r.metric === 'Facilities' && wOk(r, w)), [{ f: 'waste' }, { f: 'item' }, { f: 'value', num: 1, fmt: (v) => fmt(v) }]);
     if (visible($('ch-hzm'))) {
       $('card-hzm').hidden = !(w === 'All' || w === 'HZM');
       if (!$('card-hzm').hidden && st($('ch-hzm'), 'ar_monitoring')) bar($('ch-hzm'), M.filter((r) => r.metric === 'Hazardous waste stream'), { label: (r) => r.item, series: [{ f: 'value', name: 'MT/year', color: C[2] }] });
     }
     if (visible($('ch-pm10')) && st($('ch-pm10'), 'ar_pm10')) {
-      bar($('ch-pm10'), rowsOf('ar_pm10').slice().sort((a, b) => b.pm10 - a.pm10), { label: (r) => r.station, fmt: (v) => fmt(v, 'dec1'), series: [{ f: 'pm10', name: 'PM10 µg/m³', color: C[0], colorFn: (r) => (+r.pm10 > 60 ? 'var(--cds-chart-status-critical)' : C[0]) }], ref: { value: 60, label: 'Standard 60' }, barH: 12, tipExtra: (r) => [['City', r.city]] });
+      bar($('ch-pm10'), rowsOf('ar_pm10').slice().sort((a, b) => b.pm10 - a.pm10), { label: (r) => r.station, fmt: (v) => fmt(v, 'dec1'), series: [{ f: 'pm10', name: 'PM10 µg/m³', color: C[0], colorFn: (r) => (+r.pm10 > 60 ? 'var(--cds-chart-status-critical)' : C[0]) }], ref: { value: 60, label: 'Standard 60' }, barH: 18, tipExtra: (r) => [['City', r.city]] });
     }
     if (visible($('ch-capture')) && st($('ch-capture'), 's_labs_sites')) {
-      bar($('ch-capture'), rowsOf('s_labs_sites').filter((r) => r.kind === 'station').sort((a, b) => a.capture - b.capture), { label: (r) => r.name, max: 1, fmt: pct, tickFmt: pct, series: [{ f: 'capture', name: 'Data capture', color: C[0], sample: () => true, colorFn: (r) => (+r.capture < 0.75 ? 'var(--cds-chart-status-critical)' : C[0]) }], ref: { value: 0.75, label: '75%' }, barH: 12 });
+      bar($('ch-capture'), rowsOf('s_labs_sites').filter((r) => r.kind === 'station').sort((a, b) => a.capture - b.capture), { label: (r) => r.name, max: 1, fmt: pct, tickFmt: pct, series: [{ f: 'capture', name: 'Data capture', color: C[0], sample: () => true, colorFn: (r) => (+r.capture < 0.75 ? 'var(--cds-chart-status-critical)' : C[0]) }], ref: { value: 0.75, label: '75%' }, barH: 18 });
     }
     if (visible($('ch-wq')) && st($('ch-wq'), 'ar_monitoring')) bar($('ch-wq'), M.filter((r) => r.metric === 'Water quality stations'), { label: (r) => r.item, series: [{ f: 'value', name: 'Stations', color: C[1] }] });
     if (visible($('ch-sewage')) && st($('ch-sewage'), 'ar_monitoring')) bar($('ch-sewage'), M.filter((r) => r.metric === 'Bengaluru sewage'), { label: (r) => r.item, fmt: (v) => fmt(v, 'dec1'), series: [{ f: 'value', name: 'MLD', color: C[1] }] });
@@ -1145,6 +1229,6 @@ dash.calc('c_cit', {
 </script>
 
 </div>
-<footer class="site-foot">Sample dashboard, FY 2025-26. Figures marked Sample are illustrative.</footer>
+<footer class="site-foot">KSPCB dashboard. Figures marked Sample are illustrative.</footer>
 </body>
 </html>

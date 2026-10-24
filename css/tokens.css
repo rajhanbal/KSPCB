@@ -88,3 +88,8 @@ span.dash-skeleton, b.dash-skeleton { display: inline-block; min-width: 3ch; }
 }
 
 .site-foot { max-width: 1440px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-left, 0px)) 24px; font-size: 12px; color: var(--color-fg-muted); }
+
+/* KSPCB logo beside the dashboard title */
+.kp-brand { display: flex; align-items: center; gap: 12px; }
+.kp-logo { width: 52px; height: 52px; border-radius: 50%; flex: none; }
+@media (max-width: 480px) { .kp-logo { width: 40px; height: 40px; } }
