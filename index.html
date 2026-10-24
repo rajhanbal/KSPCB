@@ -1,0 +1,1150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KSPCB Dashboard</title>
+<meta name="description" content="Sample monitoring dashboard for the Karnataka State Pollution Control Board, FY 2025-26.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:wght@400;600&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="js/dash-shim.js"></script>
+</head>
+<body>
+<div id="dash-root"><style>
+.kp { font-family: var(--font-anthropic-sans); color: var(--color-fg); font-size: var(--cds-font-size-body); }
+.kp * { box-sizing: border-box; }
+.kp-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--cds-gap-md); padding-block: var(--cds-pad-sm) var(--cds-pad-md); border-bottom: 1px solid var(--color-border-line); }
+.kp-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+.kp-take { margin: var(--cds-gap-xs) 0 0; color: var(--color-fg-muted); max-width: 70ch; }
+.kp-take b { font-weight: var(--cds-font-weight-medium); color: var(--color-fg); }
+.kp-legend-note { display: flex; gap: var(--cds-gap-md); flex-wrap: wrap; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); align-items: center; }
+.kp-sw { display: inline-block; width: 12px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+.kp-sw.real { background: var(--kp-accent); }
+.kp-sw.samp { background: var(--kp-accent); opacity: .35; outline: 1px dashed var(--kp-accent); outline-offset: -1px; }
+
+.kp-tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--color-border-line); margin-bottom: var(--cds-gap-md); }
+.kp-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; padding: var(--cds-pad-sm) var(--cds-pad-md); font: inherit; color: var(--color-fg-muted); cursor: pointer; white-space: nowrap; }
+.kp-tab:hover { color: var(--color-fg); }
+.kp-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--kp-accent); font-weight: var(--cds-font-weight-medium); }
+.kp-tab:focus-visible, .kp-chip:focus-visible, .kp-btn:focus-visible { outline: 2px solid var(--kp-accent); outline-offset: 2px; }
+
+.kp-shell { display: grid; grid-template-columns: 13.5rem minmax(0, 1fr); gap: var(--cds-gap-lg); align-items: start; }
+.kp-shell.collapsed { grid-template-columns: 2.5rem minmax(0, 1fr); }
+@media (max-width: 760px) { .kp-shell, .kp-shell.collapsed { grid-template-columns: minmax(0, 1fr); } }
+.kp-filters { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); position: sticky; top: var(--cds-gap-md); }
+.kp-shell.collapsed .kp-filters { padding: var(--cds-pad-sm) var(--cds-pad-xs); }
+.kp-shell.collapsed .kp-fbody, .kp-shell.collapsed .kp-ftitle { display: none; }
+.kp-fhead { display: flex; justify-content: space-between; align-items: center; gap: var(--cds-gap-sm); }
+.kp-ftitle { font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-heading); }
+.kp-btn { appearance: none; background: none; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); color: var(--color-fg-muted); font: inherit; font-size: var(--cds-font-size-caption); padding: 2px 8px; cursor: pointer; }
+.kp-btn:hover { color: var(--color-fg); }
+.kp-flabel { margin: var(--cds-gap-md) 0 var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-transform: uppercase; letter-spacing: .04em; }
+.kp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.kp-chip { appearance: none; font: inherit; font-size: var(--cds-font-size-caption); border: 1px solid var(--color-border-line); background: var(--color-bg); color: var(--color-fg); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.kp-chip[aria-pressed="true"] { background: var(--kp-accent); border-color: var(--kp-accent); color: var(--color-bg); }
+.kp-fhelp { margin: var(--cds-gap-md) 0 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+
+.kp-page[hidden] { display: none; }
+.kp-sec { margin: var(--cds-gap-lg) 0 var(--cds-gap-sm); font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); display: flex; align-items: baseline; gap: var(--cds-gap-sm); flex-wrap: wrap; }
+.kp-sec:first-child { margin-top: 0; }
+.kp-sec small { font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+
+.kp-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: var(--cds-gap-sm); margin-bottom: var(--cds-gap-md); }
+.kp-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.kp-tile .lbl { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.kp-tile .big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.15; }
+.kp-tile .sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+.kp-tile.flag { box-shadow: inset 3px 0 0 var(--color-bad); }
+
+.kp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-md); }
+.kp-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); min-width: 0; display: flex; flex-direction: column; }
+.kp-card.wide { grid-column: 1 / -1; }
+.kp-card[hidden] { display: none; }
+.kp-card-h { display: flex; align-items: center; justify-content: space-between; gap: var(--cds-gap-sm); padding: var(--cds-pad-sm) var(--cds-pad-md); border-bottom: 1px solid var(--color-border-line); flex-wrap: wrap; }
+.kp-card-h h3 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+.kp-card-b { padding: var(--cds-pad-md); display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; }
+.kp-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+.kp-badges { display: flex; gap: 4px; flex-wrap: wrap; }
+.kp-badge { font-size: var(--cds-font-size-caption); border-radius: 999px; padding: 1px 8px; border: 1px solid var(--color-border-line); color: var(--color-fg-muted); white-space: nowrap; }
+.kp-badge.sample { border-style: dashed; color: var(--color-warn); border-color: var(--color-warn); }
+.kp-badge.wf { color: var(--kp-accent); border-color: var(--kp-accent); }
+.kp-badge.wf[hidden] { display: none; }
+
+.kp-chart { position: relative; min-height: 120px; width: 100%; }
+.kp-chart svg { display: block; overflow: visible; }
+.kp-tick { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+.kp-lab { fill: var(--color-fg); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+.kp-val { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
+.kp-leg { display: flex; flex-wrap: wrap; gap: 4px var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: 6px; }
+.kp-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); z-index: 5; min-width: 9rem; max-width: 16rem; }
+.kp-tip .t { color: var(--cds-text-secondary); margin-bottom: 2px; }
+.kp-tip .r { display: flex; gap: 6px; align-items: center; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.kp-tip .r span:first-child { display: flex; align-items: center; gap: 4px; }
+.kp-empty { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: flex; align-items: center; justify-content: center; min-height: 80px; gap: 6px; text-align: center; }
+.kp-dot { width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); display: inline-block; }
+
+.kp-twrap { overflow-x: auto; max-height: 26rem; }
+.kp-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.kp-table th { text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: 6px 8px; border-bottom: 1px solid var(--color-border-line); position: sticky; top: 0; background: var(--color-panel); white-space: nowrap; }
+.kp-table td { padding: 6px 8px; border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+.kp-table .num { text-align: right; white-space: nowrap; }
+.kp-table th.num { text-align: right; }
+.kp-table tr.total td { font-weight: var(--cds-font-weight-medium); }
+.kp-pill { display: inline-block; border-radius: 999px; padding: 0 7px; border: 1px solid currentColor; }
+.kp-pill.ok { color: var(--color-ok); } .kp-pill.bad { color: var(--color-bad); }
+
+.kp-heat { position: relative; overflow-x: auto; min-height: 120px; }
+.kp-heat-t { border-collapse: separate; border-spacing: 2px; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.kp-heat-t th { font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: 4px 6px; text-align: center; vertical-align: bottom; line-height: 1.25; min-width: 4.2rem; }
+.kp-heat-t th.rl { text-align: left; min-width: 10rem; }
+.kp-heat-t th.smp { text-decoration: underline dashed var(--color-warn); text-underline-offset: 3px; }
+.kp-heat-t td { text-align: center; padding: 6px 4px; border-radius: 3px; white-space: nowrap; }
+.kp-heat-t td.rl { text-align: left; background: none; color: var(--color-fg); white-space: nowrap; padding-left: 2px; }
+.kp-heat-t td.tot { box-shadow: inset 0 0 0 1px var(--color-border-line); }
+.kp-heat-t tr.ro td.rl { padding-left: 1.6rem; color: var(--color-fg-muted); }
+.kp-heat-t tr.ro td { font-size: calc(var(--cds-font-size-caption) * .95); }
+.kp-rowbtn { appearance: none; background: none; border: 0; font: inherit; color: inherit; cursor: pointer; padding: 0; display: inline-flex; gap: 6px; align-items: center; }
+.kp-rowbtn:focus-visible { outline: 2px solid var(--kp-accent); outline-offset: 2px; }
+.kp-rowbtn i { font-style: normal; width: 1ch; color: var(--color-fg-muted); }
+.kp-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.kp-ctl .kp-chip { background: var(--color-panel); }
+.kp-scale { display: flex; align-items: center; gap: 6px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.kp-scale span.ramp { width: 90px; height: 8px; border-radius: 4px; display: inline-block; }
+
+.kp-mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-md); }
+.kp-mini > div { min-width: 0; }
+.kp-mini h4 { margin: 0 0 2px; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); display: flex; justify-content: space-between; gap: 6px; }
+.kp-mini h4 span { font-weight: 400; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.kp-planned { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--cds-gap-sm); }
+.kp-planned div { border: 1px dashed var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.kp-planned b { display: block; color: var(--color-fg); font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin-bottom: 2px; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+[data-dash-source-state=empty] { color: transparent; }
+</style>
+
+<div class="kp" id="kp">
+  <div class="kp-head">
+    <div>
+      <h1 id="title">Karnataka State Pollution Control Board</h1>
+      <p class="kp-take" id="takeaway">In FY 2025-26 the Board received <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</b> consent applications and decided <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</b> of them within the year; <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="pending">—</b> were still under process at year end.</p>
+    </div>
+    <div class="kp-legend-note"><span><i class="kp-sw real"></i>Reported, FY 2025-26</span><span><i class="kp-sw samp"></i>Sample data (illustrative)</span></div>
+  </div>
+
+  <div class="kp-tabs" role="tablist" id="tabs">
+    <button class="kp-tab" role="tab" data-tab="enforcement" aria-selected="true">Enforcement</button>
+    <button class="kp-tab" role="tab" data-tab="monitoring" aria-selected="false">Environmental quality monitoring</button>
+    <button class="kp-tab" role="tab" data-tab="financials" aria-selected="false">Financials</button>
+    <button class="kp-tab" role="tab" data-tab="legal" aria-selected="false">Legal</button>
+    <button class="kp-tab" role="tab" data-tab="citizen" aria-selected="false">Citizen corner</button>
+  </div>
+
+  <div class="kp-shell" id="shell">
+    <aside class="kp-filters" id="filters">
+      <div class="kp-fhead"><span class="kp-ftitle">Filters</span><button class="kp-btn" id="fcollapse" aria-label="Collapse filters">«</button></div>
+      <div class="kp-fbody">
+        <div class="kp-flabel">Waste type</div>
+        <div class="kp-chips" id="wchips"></div>
+        <p class="kp-fhelp">Applies to cards marked with the waste-type badge. Consent (CFE/CFO) items show only under All.</p>
+        <button class="kp-btn" id="freset" style="margin-top: var(--cds-gap-sm)">Reset filters</button>
+      </div>
+    </aside>
+
+    <div>
+    <!-- ENFORCEMENT -->
+    <section class="kp-page" id="enforcement" role="tabpanel">
+      <div class="kp-tiles">
+        <div class="kp-tile"><span class="lbl">Operating regulated entities</span><span class="big v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total.operating" data-field="value">—</span><span class="sub">of <span class="v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total" data-field="value">—</span> covered · 31 Mar 2026</span></div>
+        <div class="kp-tile"><span class="lbl">Consent applications received</span><span class="big v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</span><span class="sub">CFE, CFE expansion, CFO · FY 2025-26</span></div>
+        <div class="kp-tile"><span class="lbl">Consent disposal rate</span><span class="big v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</span><span class="sub">Issued + refused ÷ received</span></div>
+        <div class="kp-tile flag"><span class="lbl">Units without valid CFO <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expired">—</span><span class="sub">Operating Red/Orange/Green, consent expired</span></div>
+        <div class="kp-tile"><span class="lbl">CFO expiring in 90 days <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expiring_90">—</span><span class="sub">Renewal reminders due</span></div>
+        <div class="kp-tile flag"><span class="lbl">BMW occupiers yet to apply</span><span class="big v dash-skeleton" data-source="ar_enforcement" data-where="key=auth.bmw.yettoapply" data-field="value">—</span><span class="sub">Operating without authorisation</span></div>
+      </div>
+
+      <h2 class="kp-sec">Consent <small>Water Act 1974 · Air Act 1981</small></h2>
+      <div class="kp-grid">
+        <section class="kp-card" id="card-consent">
+          <header class="kp-card-h"><h3>Consent applications, FY 2025-26</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Disposal rate is applications issued or refused as a share of those received in the year.</p>
+            <div class="kp-twrap"><table class="kp-table" id="t-consent" data-source="c_consent" data-row-key="type">
+              <thead><tr><th data-field="type">Type</th><th class="num" data-field="received">Received</th><th class="num" data-field="issued">Issued</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="pending">Under process</th><th class="num" data-field="disposal_rate">Disposal rate</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </section>
+        <section class="kp-card" id="card-category">
+          <header class="kp-card-h"><h3>Industries by category</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Units on the register as on 31 March 2026, by CPCB colour category and status. White units need no consent.</p>
+            <div class="kp-chart dash-skeleton" id="ch-category" data-source="ar_enforcement"></div>
+          </div>
+        </section>
+        <section class="kp-card wide" id="card-pipeline">
+          <header class="kp-card-h"><h3>Open applications by processing stage</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Applications not yet disposed, by where they sit in the processing workflow (Inward → RO scrutiny → query/reply → e-Sign → payment → inspection → HO / Consent Committee). Red marks those past the Sakala time limit for the service.</p>
+            <div class="kp-tiles" style="margin:0">
+              <div class="kp-tile"><span class="lbl">Open applications</span><span class="big v pipe-tile dash-skeleton" data-source="c_pipeline" data-field="open">—</span></div>
+              <div class="kp-tile flag"><span class="lbl">Past Sakala time limit</span><span class="big v pipe-tile dash-skeleton" data-source="c_pipeline" data-field="over_sla">—</span><span class="sub"><span class="v pipe-tile dash-skeleton" data-source="c_pipeline" data-field="over_share" data-fmt="pct">—</span> of open</span></div>
+            </div>
+            <div class="kp-mini">
+              <div><h4>By stage</h4><div class="kp-chart dash-skeleton" id="ch-pipe-stage" data-source="c_pipeline"></div></div>
+              <div><h4>By module</h4><div class="kp-chart dash-skeleton" id="ch-pipe-module" data-source="c_pipeline"></div></div>
+            </div>
+          </div>
+        </section>
+        <section class="kp-card wide" id="card-pipe-zone">
+          <header class="kp-card-h"><h3>Application status by zone and regional office</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Open applications in each processing stage across the 12 zonal offices. Select a zone to see its regional offices (45 in all, as mapped on the KSPCB contact page). Darker cells hold more applications; zones and regional offices are shaded on separate scales.</p>
+            <div class="kp-ctl">
+              <div class="kp-chips" id="pipe-metric" role="group" aria-label="Measure">
+                <button class="kp-chip" data-m="open">Open applications</button>
+                <button class="kp-chip" data-m="over_sla">Past Sakala limit</button>
+                <button class="kp-chip" data-m="over_share">Share past limit</button>
+              </div>
+              <button class="kp-btn" id="pipe-expand">Expand all</button>
+              <button class="kp-btn" id="pipe-collapse">Collapse all</button>
+            </div>
+            <div class="kp-heat dash-skeleton" id="hm-pipe" data-source="c_pipe_zone ref_offices"></div>
+          </div>
+        </section>
+      </div>
+
+      <h2 class="kp-sec">Authorisation <small>BMW · HWM · PWM · E-waste · SWM · C&amp;D rules</small></h2>
+      <div class="kp-grid">
+        <section class="kp-card wide" id="card-auth">
+          <header class="kp-card-h"><h3>Authorisation coverage by waste type</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Partly sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Coverage is entities holding a valid authorisation or registration as a share of all entities that need one (authorised + pending + operating without authorisation). Bars under 85% are flagged. Lighter bars include sample figures; BMW is fully reported for FY 2025-26.</p>
+            <div class="kp-mini">
+              <div><h4>Coverage</h4><div class="kp-chart dash-skeleton" id="ch-auth" data-source="c_auth"></div></div>
+              <div style="min-width:0">
+                <h4>Breakdown</h4>
+                <div class="kp-twrap"><table class="kp-table" id="t-auth" data-source="c_auth" data-row-key="waste">
+                  <thead><tr><th data-field="waste">Waste type</th><th class="num" data-field="required">Need authorisation</th><th class="num" data-field="authorised">Authorised</th><th class="num" data-field="pending">Pending</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="without">Operating without</th><th class="num" data-field="coverage">Coverage</th></tr></thead><tbody></tbody></table></div>
+                <p class="kp-note">Underlined figures are sample data.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="kp-card" id="card-validity">
+          <header class="kp-card-h"><h3>Consent and authorisation validity</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Share of each register by days to or since the valid-upto date. CFO validity: Red 5, Orange 10, Green 15 years; authorisations 5 years.</p>
+            <div class="kp-chart dash-skeleton" id="ch-validity" data-source="c_validity"></div>
+          </div>
+        </section>
+      </div>
+
+      <h2 class="kp-sec">Regulated entities <small>Inspections, workload and register quality</small></h2>
+      <div class="kp-grid">
+        <section class="kp-card wide" id="card-zones">
+          <header class="kp-card-h"><h3>Zones at a glance</h3><div class="kp-badges"><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b">
+            <div class="kp-ctl">
+              <div class="kp-chips" id="zone-metric" role="group" aria-label="Measure">
+                <button class="kp-chip" data-m="pending_ratio">Inspections due ratio</button>
+                <button class="kp-chip" data-m="officers">Officer strength</button>
+              </div>
+            </div>
+            <p class="kp-note" id="zone-note-due">Inspections due ratio is inspections due but not yet done, as a share of all inspections due in the year. Lower is better; darker zones are further behind. State: <b class="v dash-skeleton" data-source="c_insp" data-where="zone=All zones" data-field="pending_ratio" data-fmt="pct">—</b>.</p>
+            <p class="kp-note" id="zone-note-off" hidden>Officer strength is the number of field environmental officers posted in each zonal office; darker zones have more. State total: <b class="v dash-skeleton" data-source="c_insp" data-where="zone=All zones" data-field="officers">—</b>.</p>
+            <div class="kp-chart dash-skeleton" id="map-zones" data-source="c_insp ref_offices geo_districts" style="min-height: 420px"></div>
+            <p class="kp-note">Bengaluru Urban and Bengaluru Rural districts are split by ward and taluk between the four Bengaluru zones and Ramanagara (R R Nagar), so they appear in the inset.</p>
+          </div>
+        </section>
+        <section class="kp-card" id="card-insp-cat">
+          <header class="kp-card-h"><h3>Inspections by category</h3><div class="kp-badges"><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Inspections due and done by consent category. Orange and Green units are the most likely to fall behind.</p>
+            <div class="kp-chart dash-skeleton" id="ch-insp-cat" data-source="s_inspections"></div>
+          </div>
+        </section>
+        <section class="kp-card" id="card-dq">
+          <header class="kp-card-h"><h3>Register data quality and returns</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Completeness of key register fields and statutory annual returns received against those due. The tick marks the target.</p>
+            <div class="kp-chart dash-skeleton" id="ch-dq" data-source="s_quality"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- MONITORING -->
+    <section class="kp-page" id="monitoring" role="tabpanel" hidden>
+      <h2 class="kp-sec">Waste handling <small>Projected vs reported generation vs handled</small></h2>
+      <div class="kp-grid">
+        <section class="kp-card wide" id="card-waste">
+          <header class="kp-card-h"><h3>Generation and handling by waste type</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Gaps: sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Projected comes from authorised quantities in applications; reported from annual returns (BMW Form IV, HWM Form 4, E-waste Form 3); handled is treated, recycled or disposed. Lighter bars are sample values where no reported figure exists. Units differ by stream.</p>
+            <div class="kp-mini" id="waste-mini" data-source="c_waste"></div>
+          </div>
+        </section>
+        <section class="kp-card" id="card-facilities">
+          <header class="kp-card-h"><h3>Treatment and processing facilities</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span></div></header>
+          <div class="kp-card-b">
+            <div class="kp-twrap"><table class="kp-table" id="t-fac" data-source="ar_monitoring" data-row-key="key">
+              <thead><tr><th data-field="waste">Waste type</th><th data-field="item">Facility</th><th class="num" data-field="value">Count</th><th data-field="period">Period</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </section>
+        <section class="kp-card" id="card-hzm">
+          <header class="kp-card-h"><h3>Hazardous waste by disposal route</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Generation reported by authorised HW generators, MT per year.</p>
+            <div class="kp-chart dash-skeleton" id="ch-hzm" data-source="ar_monitoring"></div>
+          </div>
+        </section>
+      </div>
+
+      <h2 class="kp-sec">Site monitoring <small>Water bodies · air · mining areas · contaminated sites</small></h2>
+      <div class="kp-tiles">
+        <div class="kp-tile"><span class="lbl">River stations in class C</span><span class="big v dash-skeleton" data-source="ar_monitoring" data-where="key=share.riverC" data-field="value" data-fmt="pct0">—</span><span class="sub">of <span class="v dash-skeleton" data-source="ar_monitoring" data-where="key=st.river" data-field="value">—</span> river stations</span></div>
+        <div class="kp-tile flag"><span class="lbl">Lake stations in class D</span><span class="big v dash-skeleton" data-source="ar_monitoring" data-where="key=share.lakeD" data-field="value" data-fmt="pct0">—</span><span class="sub">of <span class="v dash-skeleton" data-source="ar_monitoring" data-where="key=st.lake" data-field="value">—</span> lake stations</span></div>
+        <div class="kp-tile"><span class="lbl">Stations over PM10 standard</span><span class="big v dash-skeleton" data-source="c_pm" data-field="over_standard">—</span><span class="sub">of <span class="v dash-skeleton" data-source="c_pm" data-field="stations">—</span> CAAQMS, annual mean above 60 µg/m³</span></div>
+        <div class="kp-tile"><span class="lbl">Water bodies monitored <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="s_labs_sites" data-where="id=site.wb.monitored" data-field="value">—</span><span class="sub">of <span class="v dash-skeleton" data-source="s_labs_sites" data-where="id=site.wb.notified" data-field="value">—</span> notified</span></div>
+        <div class="kp-tile"><span class="lbl">Contaminated sites <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="s_labs_sites" data-where="id=site.cs.confirmed" data-field="value">—</span><span class="sub">confirmed · <span class="v dash-skeleton" data-source="s_labs_sites" data-where="id=site.cs.probable" data-field="value">—</span> probable</span></div>
+        <div class="kp-tile"><span class="lbl">Mining-area CAAQMS live <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="s_labs_sites" data-where="id=site.mine.live" data-field="value">—</span><span class="sub">of <span class="v dash-skeleton" data-source="s_labs_sites" data-where="id=site.mine.planned" data-field="value">—</span> planned</span></div>
+      </div>
+      <div class="kp-grid">
+        <section class="kp-card" id="card-pm10">
+          <header class="kp-card-h"><h3>PM10 annual mean by CAAQMS station</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">µg/m³, FY 2025-26. The dashed line is the 60 µg/m³ annual standard (NAAQS 2009).</p>
+            <div class="kp-chart dash-skeleton" id="ch-pm10" data-source="ar_pm10"></div>
+          </div>
+        </section>
+        <section class="kp-card" id="card-capture">
+          <header class="kp-card-h"><h3>Station data capture</h3><div class="kp-badges"><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Share of hourly values received in the year. Stations under 75% are not reliable for annual reporting.</p>
+            <div class="kp-chart dash-skeleton" id="ch-capture" data-source="s_labs_sites"></div>
+          </div>
+        </section>
+        <section class="kp-card" id="card-stations">
+          <header class="kp-card-h"><h3>Water quality stations and Bengaluru sewage</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b">
+            <div class="kp-mini">
+              <div><h4>Stations by water body <span>count</span></h4><div class="kp-chart dash-skeleton" id="ch-wq" data-source="ar_monitoring"></div></div>
+              <div><h4>Bengaluru sewage <span>MLD</span></h4><div class="kp-chart dash-skeleton" id="ch-sewage" data-source="ar_monitoring"></div></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <h2 class="kp-sec">Lab insights <small>9 Board laboratories</small></h2>
+      <div class="kp-grid">
+        <section class="kp-card" id="card-labs">
+          <header class="kp-card-h"><h3>Samples analysed by laboratory</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Total <b class="v dash-skeleton" data-source="ar_monitoring" data-where="key=lab.total" data-field="value">—</b> samples in FY 2025-26.</p>
+            <div class="kp-chart dash-skeleton" id="ch-labs" data-source="ar_labs"></div>
+          </div>
+        </section>
+        <section class="kp-card" id="card-labq">
+          <header class="kp-card-h"><h3>Laboratory quality</h3><div class="kp-badges"><span class="kp-badge sample">Others: sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Accreditation status, share of samples failing standards, and parameters tested against those prescribed.</p>
+            <div class="kp-twrap"><table class="kp-table" id="t-labs" data-source="c_labs" data-row-key="lab">
+              <thead><tr><th data-field="lab">Lab</th><th class="num" data-field="samples">Samples</th><th data-field="nabl">NABL</th><th class="num" data-field="fail_share">Failing</th><th class="num" data-field="param_coverage">Parameters</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- FINANCIALS -->
+    <section class="kp-page" id="financials" role="tabpanel" hidden>
+      <div class="kp-tiles">
+        <div class="kp-tile"><span class="lbl">Total receipts</span><span class="big v dash-skeleton" data-source="c_fin" data-field="receipts" data-fmt="lakh">—</span><span class="sub">Rs lakh · FY 2025-26</span></div>
+        <div class="kp-tile"><span class="lbl">Consent and authorisation fees</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=fin.rec.fees" data-field="value" data-fmt="lakh">—</span><span class="sub"><span class="v dash-skeleton" data-source="c_fin" data-field="fee_share" data-fmt="pct">—</span> of receipts</span></div>
+        <div class="kp-tile"><span class="lbl">Total expenditure</span><span class="big v dash-skeleton" data-source="c_fin" data-field="expenditure" data-fmt="lakh">—</span><span class="sub">Rs lakh</span></div>
+        <div class="kp-tile"><span class="lbl">Surplus for the year</span><span class="big v dash-skeleton" data-source="c_fin" data-field="surplus" data-fmt="lakh">—</span><span class="sub">Rs lakh, receipts less expenditure</span></div>
+        <div class="kp-tile"><span class="lbl">Single-use plastic fines</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=fin.sup.fines" data-field="value" data-fmt="lakh2">—</span><span class="sub">Rs lakh, cumulative</span></div>
+      </div>
+      <h2 class="kp-sec">Consent fees and spending <small>FY 2025-26</small></h2>
+      <div class="kp-grid">
+        <section class="kp-card" id="card-receipts">
+          <header class="kp-card-h"><h3>Receipts by head</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b"><p class="kp-note">Rs lakh, FY 2025-26. Water cess is no longer released to the Board after GST.</p><div class="kp-chart dash-skeleton" id="ch-receipts" data-source="ar_flc"></div></div>
+        </section>
+        <section class="kp-card" id="card-expend">
+          <header class="kp-card-h"><h3>Expenditure by head</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b"><p class="kp-note">Rs lakh, FY 2025-26.</p><div class="kp-chart dash-skeleton" id="ch-expend" data-source="ar_flc"></div></div>
+        </section>
+      </div>
+      <h2 class="kp-sec">Environmental compensation and penalties</h2>
+      <div class="kp-grid">
+        <section class="kp-card" id="card-ec">
+          <header class="kp-card-h"><h3>Environmental compensation imposed vs realised</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b"><p class="kp-note">Rs lakh, by waste type. Realisation <b class="v ec-tile dash-skeleton" data-source="c_ec" data-field="realisation" data-fmt="pct">—</b> for the current selection.</p><div class="kp-chart dash-skeleton" id="ch-ec" data-source="c_ec"></div></div>
+        </section>
+        <section class="kp-card" id="card-chandapura">
+          <header class="kp-card-h"><h3>Chandapura Lake compensation</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">The largest single EC case reported: levied on units polluting Chandapura Lake.</p>
+            <div class="kp-tiles" style="margin:0">
+              <div class="kp-tile"><span class="lbl">Levied</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=fin.ec.chandapura.levied" data-field="value" data-fmt="lakh">—</span><span class="sub">Rs lakh</span></div>
+              <div class="kp-tile flag"><span class="lbl">Recovered</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=fin.ec.chandapura.recovered" data-field="value" data-fmt="lakh">—</span><span class="sub"><span class="v dash-skeleton" data-source="c_fin" data-field="ec_recovery_chandapura" data-fmt="pct">—</span> of levied</span></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- LEGAL -->
+    <section class="kp-page" id="legal" role="tabpanel" hidden>
+      <div class="kp-tiles">
+        <div class="kp-tile flag"><span class="lbl">Court cases pending</span><span class="big v dash-skeleton" data-source="c_legal" data-field="cases_pending">—</span><span class="sub">all forums, since inception</span></div>
+        <div class="kp-tile"><span class="lbl">NGT cases pending</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=leg.ngt" data-field="pending">—</span><span class="sub">of <span class="v dash-skeleton" data-source="ar_flc" data-where="key=leg.ngt" data-field="filed">—</span> filed</span></div>
+        <div class="kp-tile"><span class="lbl">Closure directions issued</span><span class="big v dash-skeleton" data-source="c_legal" data-field="closures_issued">—</span><span class="sub"><span class="v dash-skeleton" data-source="c_legal" data-field="closures_revoked">—</span> revoked · FY 2025-26</span></div>
+        <div class="kp-tile"><span class="lbl">Personal hearings held</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=leg.hear.personal" data-field="value">—</span><span class="sub">FY 2025-26</span></div>
+        <div class="kp-tile"><span class="lbl">EIA public hearings</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=leg.hear.public" data-field="value">—</span><span class="sub">FY 2025-26</span></div>
+      </div>
+      <h2 class="kp-sec">Cases <small>Courts, tribunals and appellate authority</small></h2>
+      <div class="kp-grid">
+        <section class="kp-card" id="card-cases">
+          <header class="kp-card-h"><h3>Cases by forum</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Cumulative from inception to 31 March 2026.</p>
+            <div class="kp-chart dash-skeleton" id="ch-cases" data-source="ar_flc"></div>
+          </div>
+        </section>
+        <section class="kp-card" id="card-closure">
+          <header class="kp-card-h"><h3>Closure directions issued and revoked</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b"><p class="kp-note">FY 2025-26, by the Act invoked.</p><div class="kp-chart dash-skeleton" id="ch-closure" data-source="ar_flc"></div></div>
+        </section>
+      </div>
+      <h2 class="kp-sec">Upcoming hearings and directions</h2>
+      <div class="kp-grid">
+        <section class="kp-card wide" id="card-hearings">
+          <header class="kp-card-h"><h3>Upcoming hearings</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Next listed date and stage. References are placeholders until the legal cell's register is connected.</p>
+            <div class="kp-twrap"><table class="kp-table" id="t-hearings" data-source="s_legal_fin_cit" data-row-key="id">
+              <thead><tr><th data-field="next_date">Next date</th><th data-field="name">Reference</th><th data-field="forum">Forum</th><th data-field="subject">Subject</th><th data-field="zone">Zone</th><th data-field="stage">Stage</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </section>
+        <section class="kp-card" id="card-directions">
+          <header class="kp-card-h"><h3>Compliance with directions</h3><div class="kp-badges"><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b"><p class="kp-note">Notices and directions issued, and how many have been complied with after a follow-up inspection.</p><div class="kp-chart dash-skeleton" id="ch-directions" data-source="s_legal_fin_cit"></div></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- CITIZEN -->
+    <section class="kp-page" id="citizen" role="tabpanel" hidden>
+      <div class="kp-tiles">
+        <div class="kp-tile"><span class="lbl">Complaints received</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=cit.received" data-field="value">—</span><span class="sub">FY 2025-26</span></div>
+        <div class="kp-tile"><span class="lbl">Complaints resolved</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=cit.resolved" data-field="value">—</span><span class="sub"><span class="v dash-skeleton" data-source="c_cit" data-field="resolution_rate" data-fmt="pct">—</span> of all open in the year</span></div>
+        <div class="kp-tile"><span class="lbl">Pending at year end</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=cit.pending" data-field="value">—</span><span class="sub">from <span class="v dash-skeleton" data-source="ar_flc" data-where="key=cit.opening" data-field="value">—</span> at the start</span></div>
+        <div class="kp-tile"><span class="lbl">RTI applications</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=cit.rti.received" data-field="value">—</span><span class="sub"><span class="v dash-skeleton" data-source="c_cit" data-field="rti_disposal" data-fmt="pct">—</span> disposed</span></div>
+        <div class="kp-tile"><span class="lbl">Eco-Ganesha programmes</span><span class="big v dash-skeleton" data-source="ar_flc" data-where="key=cit.ganesha.prog" data-field="value">—</span><span class="sub"><span class="v dash-skeleton" data-source="ar_flc" data-where="key=cit.ganesha.people" data-field="value">—</span> participants</span></div>
+      </div>
+      <h2 class="kp-sec">Complaint status and analytics</h2>
+      <div class="kp-grid">
+        <section class="kp-card" id="card-cmp-zone">
+          <header class="kp-card-h"><h3>Complaints by zone</h3><div class="kp-badges"></div></header>
+          <div class="kp-card-b"><p class="kp-note">FY 2025-26, each column on its own scale. Resolved can exceed received where complaints carried over from the year before were closed.</p><div class="kp-heat dash-skeleton" id="hm-cmp" data-source="c_insp ref_offices"></div></div>
+        </section>
+        <section class="kp-card" id="card-cmp-type">
+          <header class="kp-card-h"><h3>Complaints by pollution type</h3><div class="kp-badges"><span class="kp-badge sample">Sample split</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Only totals are reported; this split and the resolution times are illustrative.</p>
+            <div class="kp-twrap"><table class="kp-table" id="t-cmp" data-source="s_legal_fin_cit" data-row-key="id">
+              <thead><tr><th data-field="name">Type</th><th class="num" data-field="received">Received</th><th class="num" data-field="resolved">Resolved</th><th class="num" data-field="avg_days">Avg days to resolve</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </section>
+        <section class="kp-card wide" id="card-planned">
+          <header class="kp-card-h"><h3>Green champion and chatbot</h3><div class="kp-badges"><span class="kp-badge">Planned</span></div></header>
+          <div class="kp-card-b">
+            <div class="kp-planned">
+              <div><b>Green champion</b>Recognition for citizens, schools and units that report or reduce pollution, alongside the World Environment Day awards and GreenCo ratings.</div>
+              <div><b>Chatbot</b>Answers on consent status, Sakala time limits and complaint tracking, using the application Inward number or complaint ID.</div>
+              <div><b>Public consent register</b>Links to published consent orders, so citizens can check whether a unit near them holds a valid consent.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const W = ['All', 'BMW', 'PWM', 'C&D', 'HZM', 'E-waste', 'SWM'];
+  const root = document.getElementById('kp');
+  root.style.setProperty('--kp-accent', dash.colors[0]);
+  const IN = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+  const IN1 = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 });
+  const IN2 = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (v, k) => {
+    if (v === null || v === undefined || v === '' || (typeof v === 'number' && !isFinite(v))) return '—';
+    const n = Number(v);
+    if (k === 'pct') return (n * 100).toFixed(1) + '%';
+    if (k === 'pct0') return Math.round(n * 100) + '%';
+    if (k === 'dec1') return IN1.format(n);
+    if (k === 'lakh2') return IN2.format(n);
+    if (k === 'text') return String(v);
+    return isNaN(n) ? String(v) : IN.format(n);
+  };
+  window.kpFmt = fmt;
+  const rowsOf = (id) => { const d = dash.data(id); return d.status === 'ok' && Array.isArray(d.data) ? d.data : null; };
+  window.kpRows = rowsOf;
+
+  // ---- filter state
+  const waste = () => { const w = dash.params().waste; return W.includes(w) ? w : 'All'; };
+  window.kpWaste = waste;
+  const chips = document.getElementById('wchips');
+  W.forEach((w) => { const b = document.createElement('button'); b.className = 'kp-chip'; b.textContent = w; b.dataset.w = w; b.addEventListener('click', () => dash.setParams({ waste: w })); chips.appendChild(b); });
+  document.getElementById('freset').addEventListener('click', () => dash.resetParams());
+  const shell = document.getElementById('shell');
+  const coll = document.getElementById('fcollapse');
+  coll.addEventListener('click', () => { const c = shell.classList.toggle('collapsed'); coll.textContent = c ? '»' : '«'; coll.setAttribute('aria-label', c ? 'Expand filters' : 'Collapse filters'); });
+
+  // ---- tabs
+  const tabs = [...document.querySelectorAll('.kp-tab')];
+  const show = (id) => {
+    tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === id)));
+    document.querySelectorAll('.kp-page').forEach((p) => { p.hidden = p.id !== id; });
+    dash.setLink(id);
+    window.kpDraw && window.kpDraw();
+  };
+  window.kpShow = show;
+  tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab)));
+
+  // ---- generic value fill
+  window.kpFill = () => {
+    const w = waste();
+    root.querySelectorAll('.pipe-tile').forEach((el) => el.setAttribute('data-where', 'waste=' + encodeURIComponent(w) + '&level=total'));
+    root.querySelectorAll('.ec-tile').forEach((el) => el.setAttribute('data-where', 'waste=' + encodeURIComponent(w)));
+    root.querySelectorAll('.v[data-source]').forEach((el) => {
+      const d = dash.data(el.dataset.source);
+      if (d.status !== 'ok') { el.textContent = '—'; if (d.status !== 'loading') el.classList.remove('dash-skeleton'); return; }
+      el.classList.remove('dash-skeleton');
+      const rows = Array.isArray(d.data) ? d.data : [];
+      let row;
+      if (el.dataset.where) {
+        const conds = el.dataset.where.split('&').map((p) => p.split('=').map(decodeURIComponent));
+        row = rows.find((r) => conds.every(([k, v]) => String(r[k]) === v));
+      } else row = rows[Number(el.dataset.row || 0)];
+      el.textContent = fmt(row ? row[el.dataset.field] : null, el.dataset.fmt);
+    });
+    chips.querySelectorAll('.kp-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.w === w)));
+    root.querySelectorAll('.kp-badge.wf').forEach((b) => { b.hidden = w === 'All'; b.textContent = 'Waste type: ' + w; });
+  };
+})();
+</script>
+
+<script>
+(function () {
+  // ---- chart kit
+  const fmt = window.kpFmt;
+  const tipFor = (el) => { let t = el.querySelector('.kp-tip'); if (!t) { t = document.createElement('div'); t.className = 'kp-tip'; t.hidden = true; el.appendChild(t); } return t; };
+  const fit = (node, str, max) => { node.text(str); if (node.node().getComputedTextLength() <= max) return; let s = str; while (s.length > 3 && node.node().getComputedTextLength() > max) { s = s.slice(0, -1); node.text(s + '…'); } };
+
+  window.kpState = (el, id) => {
+    const d = dash.data(id);
+    if (d.status === 'ok') return true;
+    el.replaceChildren();
+    if (d.status === 'loading') { el.classList.add('dash-skeleton'); return false; }
+    el.classList.remove('dash-skeleton');
+    const m = document.createElement('div'); m.className = 'kp-empty';
+    const dot = document.createElement('i'); dot.className = 'kp-dot';
+    m.append(dot, document.createTextNode(d.status === 'connect' ? 'Needs access' : 'Failed to load'));
+    el.appendChild(m);
+    return false;
+  };
+
+  // rows: array; o: {label, series:[{f,name,color,sample?:fn}], stacked, fmt, ref:{value,label}, max, barH, total}
+  window.kpBar = (el, rows, o) => {
+    el.replaceChildren(); el.classList.remove('dash-skeleton');
+    const Wd = el.clientWidth; if (!Wd) return;
+    if (!rows.length) { const m = document.createElement('div'); m.className = 'kp-empty'; m.textContent = o.empty || 'Nothing to show for this waste type'; el.appendChild(m); return; }
+    const S = o.series, f = o.fmt || ((v) => fmt(v));
+    if (S.length > 1 || o.legend) {
+      const lg = document.createElement('div'); lg.className = 'kp-leg';
+      S.forEach((s) => { const i = document.createElement('span'); const sw = document.createElement('i'); sw.className = 'kp-sw'; sw.style.background = s.color; if (s.legendSample) { sw.style.opacity = .35; sw.style.outline = '1px dashed ' + s.color; } i.append(sw, document.createTextNode(s.name)); lg.appendChild(i); });
+      el.appendChild(lg);
+    }
+    const svg = d3.select(el).append('svg').attr('width', '100%');
+    const meas = svg.append('text').attr('class', 'kp-lab');
+    let lw = 0; rows.forEach((r) => { meas.text(o.label(r)); lw = Math.max(lw, meas.node().getComputedTextLength()); });
+    const labMax = Math.min(lw, Math.max(70, Wd * 0.4));
+    meas.text(f(d3.max(rows, (r) => o.stacked ? d3.sum(S, (s) => +r[s.f] || 0) : d3.max(S, (s) => +r[s.f] || 0))));
+    const valW = o.noValues ? 0 : meas.node().getComputedTextLength() + 8;
+    meas.remove();
+    const left = labMax + 10, right = Math.max(10, valW + 4);
+    const grouped = !o.stacked && S.length > 1;
+    const bh = o.barH || (grouped ? 10 : 16), band = grouped ? S.length * (bh + 2) : bh, gap = grouped ? 12 : 8;
+    const top = o.ref ? 16 : 2, H = top + rows.length * (band + gap) + 20;
+    svg.attr('viewBox', `0 0 ${Wd} ${H}`).attr('height', H);
+    const maxV = o.max || d3.max([d3.max(rows, (r) => o.stacked ? d3.sum(S, (s) => +r[s.f] || 0) : d3.max(S, (s) => +r[s.f] || 0)), o.ref ? o.ref.value : 0]) || 1;
+    const x = d3.scaleLinear([0, maxV], [left, Wd - right]);
+    if (!o.max) x.nice();
+    const ticks = x.ticks(Math.max(2, Math.floor((Wd - left - right) / 80)));
+    const g = svg.append('g');
+    g.selectAll('line.grid').data(ticks).join('line').attr('x1', (d) => x(d)).attr('x2', (d) => x(d)).attr('y1', top - 2).attr('y2', H - 18).attr('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 1);
+    g.selectAll('text.tk').data(ticks).join('text').attr('class', 'kp-tick').attr('x', (d) => x(d)).attr('y', H - 4).attr('text-anchor', 'middle').text((d) => (o.tickFmt || f)(d));
+    g.append('line').attr('x1', left).attr('x2', left).attr('y1', top - 2).attr('y2', H - 18).attr('stroke', 'var(--cds-chart-axis)');
+    const tip = tipFor(el);
+    rows.forEach((r, i) => {
+      const y = top + i * (band + gap) + gap / 2;
+      const rg = svg.append('g');
+      const lab = rg.append('text').attr('class', 'kp-lab').attr('x', left - 8).attr('y', y + band / 2).attr('dy', '0.35em').attr('text-anchor', 'end');
+      fit(lab, o.label(r), labMax);
+      let acc = 0;
+      S.forEach((s, j) => {
+        const v = +r[s.f] || 0;
+        const x0 = o.stacked ? x(acc) : left, x1 = o.stacked ? x(acc + v) : x(v);
+        const yy = grouped ? y + j * (bh + 2) : y;
+        const smp = s.sample ? s.sample(r) : false;
+        const color = s.colorFn ? s.colorFn(r) : s.color;
+        rg.append('rect').attr('x', x0).attr('y', yy).attr('width', Math.max(0, x1 - x0)).attr('height', bh).attr('rx', o.stacked ? 0 : 3)
+          .attr('fill', color).attr('fill-opacity', smp ? .35 : 1)
+          .attr('stroke', smp ? color : 'none').attr('stroke-dasharray', smp ? '3 2' : null);
+        if (grouped && !o.noValues) rg.append('text').attr('class', 'kp-val').attr('x', x1 + 4).attr('y', yy + bh / 2).attr('dy', '0.35em').text(f(v));
+        acc += v;
+      });
+      if (!grouped && !o.noValues) rg.append('text').attr('class', 'kp-val').attr('x', x(o.stacked ? acc : +r[S[0].f] || 0) + 4).attr('y', y + band / 2).attr('dy', '0.35em').text(o.endFmt ? o.endFmt(r) : f(o.stacked ? acc : r[S[0].f]));
+      if (o.mark) { const mv = +r[o.mark.f]; if (isFinite(mv)) rg.append('line').attr('x1', x(mv)).attr('x2', x(mv)).attr('y1', y - 3).attr('y2', y + band + 3).attr('stroke', 'var(--color-fg)').attr('stroke-width', 2); }
+      rg.append('rect').attr('x', 0).attr('y', y - gap / 2).attr('width', Wd).attr('height', band + gap).attr('fill', 'transparent')
+        .on('mousemove', (ev) => {
+          tip.replaceChildren();
+          const t = document.createElement('div'); t.className = 't'; t.textContent = o.label(r); tip.appendChild(t);
+          S.forEach((s) => { const line = document.createElement('div'); line.className = 'r'; const a = document.createElement('span'); if (S.length > 1) { const sw = document.createElement('i'); sw.className = 'kp-sw'; sw.style.background = s.color; a.appendChild(sw); } a.appendChild(document.createTextNode(s.name)); const b = document.createElement('span'); b.textContent = (o.tipFmt || f)(r[s.f], r, s); line.append(a, b); tip.appendChild(line); });
+          if (o.tipExtra) o.tipExtra(r).forEach(([k, v]) => { const line = document.createElement('div'); line.className = 'r'; const a = document.createElement('span'); a.textContent = k; const b = document.createElement('span'); b.textContent = v; line.append(a, b); tip.appendChild(line); });
+          tip.hidden = false;
+          const [px, py] = d3.pointer(ev, el);
+          const tw = tip.offsetWidth, th = tip.offsetHeight;
+          tip.style.left = Math.max(0, Math.min(el.clientWidth - tw, px + 12)) + 'px';
+          tip.style.top = Math.max(0, py - th - 8) + 'px';
+        })
+        .on('mouseleave', () => { tip.hidden = true; });
+    });
+    if (o.ref) {
+      const rx = x(o.ref.value);
+      svg.append('line').attr('x1', rx).attr('x2', rx).attr('y1', top - 4).attr('y2', H - 18).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3').attr('stroke-width', 1.5);
+      svg.append('text').attr('class', 'kp-tick').attr('x', rx).attr('y', 10).attr('text-anchor', rx > Wd - 60 ? 'end' : 'middle').text(o.ref.label);
+    }
+    el.appendChild(tip);
+  };
+
+  // o: {rowHead, rows:[{label, level, open, tip}], cols:[{label, key, sample, own, rel, invert, crit, tot}], val(r,c), fmt(v,c), scaleKey(r), perCol, onRow(r)}
+  window.kpHeat = (el, o) => {
+    el.replaceChildren(); el.classList.remove('dash-skeleton');
+    if (!el.clientWidth) return;
+    if (!o.rows.length) { const m = document.createElement('div'); m.className = 'kp-empty'; m.textContent = o.empty || 'Nothing to show for this waste type'; el.appendChild(m); return; }
+    const probe = document.createElement('span'); el.appendChild(probe);
+    const cc = (v) => { probe.style.color = v; return getComputedStyle(probe).color; };
+    const base = cc('var(--color-panel)'), acc = cc(dash.colors[0]), crit = cc('var(--cds-chart-status-critical)'), fg = cc('var(--color-fg)');
+    probe.remove();
+    const sk = (r, c, ci) => (o.scaleKey ? o.scaleKey(r) : '') + '|' + (o.perCol || c.own ? ci : 'g');
+    const ext = new Map();
+    o.rows.forEach((r) => o.cols.forEach((c, ci) => {
+      const v = o.val(r, c); if (v == null || !isFinite(v)) return;
+      const k = sk(r, c, ci), e = ext.get(k) || [Infinity, -Infinity];
+      e[0] = Math.min(e[0], v); e[1] = Math.max(e[1], v); ext.set(k, e);
+    }));
+    const tbl = document.createElement('table'); tbl.className = 'kp-heat-t';
+    const hr = document.createElement('tr');
+    const h0 = document.createElement('th'); h0.className = 'rl'; h0.textContent = o.rowHead || ''; hr.appendChild(h0);
+    o.cols.forEach((c) => { const th = document.createElement('th'); th.textContent = c.label; if (c.sample) { th.className = 'smp'; th.title = 'Sample data'; } hr.appendChild(th); });
+    const thead = document.createElement('thead'); thead.appendChild(hr); tbl.appendChild(thead);
+    const tb = document.createElement('tbody');
+    const tip = document.createElement('div'); tip.className = 'kp-tip'; tip.hidden = true;
+    const showTip = (ev, lines) => {
+      tip.replaceChildren();
+      lines.forEach(([k, v], i) => { const d = document.createElement('div'); if (i === 0) { d.className = 't'; d.textContent = k; } else { d.className = 'r'; const a = document.createElement('span'); a.textContent = k; const b = document.createElement('span'); b.textContent = v; d.append(a, b); } tip.appendChild(d); });
+      tip.hidden = false;
+      const [px, py] = d3.pointer(ev, el);
+      tip.style.left = Math.max(0, Math.min(el.scrollWidth - tip.offsetWidth, px + 12)) + 'px';
+      tip.style.top = Math.max(0, py - tip.offsetHeight - 8) + 'px';
+    };
+    o.rows.forEach((r) => {
+      const tr = document.createElement('tr'); if (r.level) tr.className = r.level;
+      const td0 = document.createElement('td'); td0.className = 'rl';
+      if (o.onRow && r.level === 'zone') {
+        const b = document.createElement('button'); b.className = 'kp-rowbtn'; b.setAttribute('aria-expanded', String(!!r.open));
+        const i = document.createElement('i'); i.textContent = r.open ? '▾' : '▸';
+        b.append(i, document.createTextNode(r.label)); b.addEventListener('click', () => o.onRow(r)); td0.appendChild(b);
+      } else td0.textContent = r.label;
+      if (r.tip) td0.title = r.tip;
+      tr.appendChild(td0);
+      o.cols.forEach((c, ci) => {
+        const td = document.createElement('td'); const v = o.val(r, c);
+        if (c.tot) td.classList.add('tot');
+        if (v == null || !isFinite(v)) { td.textContent = '—'; td.style.color = 'var(--color-fg-muted)'; }
+        else {
+          const e = ext.get(sk(r, c, ci)); const lo = c.rel ? e[0] : Math.min(0, e[0]);
+          let t = e[1] > lo ? (v - lo) / (e[1] - lo) : 0; if (c.invert) t = 1 - t;
+          td.style.background = d3.interpolateRgb(base, c.crit ? crit : acc)(0.05 + 0.85 * t);
+          td.style.color = t > 0.55 ? base : fg;
+          td.textContent = o.fmt(v, c);
+        }
+        td.addEventListener('mousemove', (ev) => showTip(ev, [[r.label], [c.label, v == null || !isFinite(v) ? '—' : o.fmt(v, c)]].concat(o.tip ? o.tip(r, c) : [])));
+        td.addEventListener('mouseleave', () => { tip.hidden = true; });
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb); el.append(tbl, tip);
+  };
+
+  window.kpTable = (tbl, rows, cols, keyF) => {
+    const tb = tbl.querySelector('tbody');
+    tb.replaceChildren(...rows.map((r) => {
+      const tr = document.createElement('tr');
+      if (keyF) tr.dataset.key = keyF(r);
+      if (r.type === 'All' || r.zone === 'All zones') tr.className = 'total';
+      cols.forEach((c) => {
+        const td = document.createElement('td');
+        if (c.pill) { const p = document.createElement('span'); const v = r[c.f]; p.className = 'kp-pill ' + (c.pill(v) ? 'ok' : 'bad'); p.textContent = v; td.appendChild(p); }
+        else td.textContent = c.fmt ? c.fmt(r[c.f], r) : (r[c.f] ?? '—');
+        if (c.num) td.className = 'num';
+        tr.appendChild(td);
+      });
+      return tr;
+    }));
+  };
+})();
+</script>
+
+<script>
+// ---- calculations (each reads only its own inputs)
+dash.calc('c_consent', {
+  inputs: ['ar_enforcement'], title: 'Consent applications by type',
+  description: 'Received, issued, refused and under process per consent type, with disposal rate = (issued + refused) / received, plus an All row.',
+  fn: (ar_enforcement) => {
+    const get = (g, i) => { const r = ar_enforcement.find((x) => x.metric === 'Consent applications' && x.group === g && x.item === i); return r ? Number(r.value) : 0; };
+    const rows = ['CFE', 'CFE Expansion', 'CFO'].map((t) => ({ type: t, received: get(t, 'Received'), issued: get(t, 'Issued'), refused: get(t, 'Refused'), pending: get(t, 'Under process') }));
+    const s = (k) => rows.reduce((a, r) => a + r[k], 0);
+    rows.push({ type: 'All', received: s('received'), issued: s('issued'), refused: s('refused'), pending: s('pending') });
+    rows.forEach((r) => { r.disposal_rate = r.received ? (r.issued + r.refused) / r.received : null; });
+    return rows;
+  },
+});
+dash.calc('c_auth', {
+  inputs: ['ar_enforcement', 's_auth'], title: 'Authorisation coverage by waste type',
+  description: 'Per waste type: authorised (reported where available), pending, refused and operating without authorisation; need authorisation = authorised + pending + without; coverage = authorised ÷ need. BMW uses reported figures throughout; other gaps come from the sample file.',
+  fn: (ar_enforcement, s_auth) => {
+    const v = (k) => { const r = ar_enforcement.find((x) => x.key === k); return r ? Number(r.value) : null; };
+    const out = [{ waste: 'BMW', rules: 'Bio-Medical Waste Management Rules, 2016', authorised: v('auth.bmw.granted'), pending: v('auth.bmw.pending'), refused: v('auth.bmw.rejected'), without: v('auth.bmw.yettoapply'), sample_fields: '' }];
+    const reported = { HZM: v('auth.hzm.generators'), PWM: v('auth.pwm.brandowners') + v('auth.pwm.producers') + v('auth.pwm.importers') + v('auth.pwm.processors'), 'E-waste': v('auth.ew.working'), 'C&D': v('auth.cd.facilities') };
+    s_auth.forEach((s) => {
+      const has = reported[s.waste] != null;
+      out.push({ waste: s.waste, rules: s.rules, authorised: has ? reported[s.waste] : Number(s.authorised), pending: Number(s.pending), refused: Number(s.refused), without: Number(s.without), sample_fields: (has ? '' : 'authorised,') + 'pending,refused,without' });
+    });
+    out.forEach((r) => { r.required = r.authorised + r.pending + r.without; r.coverage = r.authorised / r.required; });
+    return out;
+  },
+});
+dash.calc('c_validity', {
+  inputs: ['s_validity'], title: 'Validity bands by register',
+  description: 'Units per register in each validity band, their shares, and expired / expiring-in-90-days totals; All CFO sums the three CFO registers.',
+  fn: (s_validity) => {
+    const bands = [['valid', 'Valid, over 90 days'], ['exp30', 'Expiring within 30 days'], ['exp90', 'Expiring in 31–90 days'], ['ex1', 'Expired under 1 year'], ['ex3', 'Expired 1–3 years'], ['exmore', 'Expired over 3 years'], ['nodate', 'No validity date recorded']];
+    const make = (module, waste, rs) => {
+      const o = { module, waste }; let t = 0;
+      bands.forEach(([k, b]) => { o[k] = rs.filter((r) => r.band === b).reduce((a, r) => a + Number(r.units), 0); t += o[k]; });
+      o.total = t; bands.forEach(([k]) => { o['share_' + k] = t ? o[k] / t : 0; });
+      o.expired = o.ex1 + o.ex3 + o.exmore; o.expiring_90 = o.exp30 + o.exp90;
+      return o;
+    };
+    const mods = [...new Set(s_validity.map((r) => r.module))];
+    const out = mods.map((m) => { const rs = s_validity.filter((r) => r.module === m); return make(m, rs[0].waste, rs); });
+    out.push(make('All CFO', '', s_validity.filter((r) => r.consent === true || r.consent === 'true')));
+    return out;
+  },
+});
+dash.calc('c_pipeline', {
+  inputs: ['s_pipeline'], title: 'Open applications by stage and module',
+  description: 'Open applications and those past the Sakala limit, summed per waste type (All includes consents) at total, stage and module level.',
+  fn: (s_pipeline) => {
+    const stages = ['Scrutiny at RO', 'Query raised (QUE)', 'Reply received (REP)', 'e-Sign pending', 'Payment pending', 'Inspection', 'Scrutiny at HO', 'Consent Committee'];
+    const agg = (rs) => { const open = rs.reduce((a, r) => a + Number(r.open), 0), over = rs.reduce((a, r) => a + Number(r.over_sla), 0); return { open, over_sla: over, within: open - over, over_share: open ? over / open : null }; };
+    const out = [];
+    ['All', 'BMW', 'PWM', 'C&D', 'HZM', 'E-waste', 'SWM'].forEach((w) => {
+      const rs = w === 'All' ? s_pipeline : s_pipeline.filter((r) => r.waste === w);
+      out.push(Object.assign({ waste: w, level: 'total', name: 'Total' }, agg(rs)));
+      stages.forEach((s) => { const q = rs.filter((r) => r.stage === s); if (q.length) out.push(Object.assign({ waste: w, level: 'stage', name: s }, agg(q))); });
+      [...new Set(rs.map((r) => r.module))].forEach((m) => out.push(Object.assign({ waste: w, level: 'module', name: m }, agg(rs.filter((r) => r.module === m)))));
+    });
+    return out;
+  },
+});
+dash.calc('c_insp', {
+  inputs: ['ar_zones', 's_inspections'], title: 'Zone summary',
+  description: 'Per zone: reported units, inspections, ISO units and complaints; coverage = inspections done ÷ sample due; pending ratio = (due − done) ÷ due; workload = operating Red + Orange units ÷ sample field officers; complaints resolved ÷ received. Plus an All zones row.',
+  fn: (ar_zones, s_inspections) => {
+    const rows = ar_zones.map((z) => {
+      const s = s_inspections.find((r) => r.dim === 'zone' && r.name === z.zone) || {};
+      const red = Number(z.red_operating), orange = Number(z.orange_operating), done = Number(z.inspections), due = Number(s.due), officers = Number(s.officers);
+      const rec = Number(z.complaints_received), res = Number(z.complaints_resolved);
+      return { zone: z.zone, red_operating: red, orange_operating: orange, done, due, coverage: done / due, pending_ratio: (due - done) / due, red_orange_units: red + orange, officers, units_per_officer: (red + orange) / officers, iso14001: Number(z.iso14001), complaints_received: rec, complaints_resolved: res, complaint_ratio: res / rec };
+    });
+    const sum = (k) => rows.reduce((a, r) => a + r[k], 0);
+    const all = { zone: 'All zones' };
+    ['red_operating', 'orange_operating', 'done', 'due', 'red_orange_units', 'officers', 'iso14001', 'complaints_received', 'complaints_resolved'].forEach((k) => { all[k] = sum(k); });
+    all.coverage = all.done / all.due; all.pending_ratio = (all.due - all.done) / all.due; all.units_per_officer = all.red_orange_units / all.officers; all.complaint_ratio = all.complaints_resolved / all.complaints_received;
+    rows.push(all);
+    return rows;
+  },
+});
+dash.calc('c_pipe_zone', {
+  inputs: ['s_pipeline_ro'], title: 'Application status by zone and RO',
+  description: 'Sample open applications and those past the Sakala limit, summed per waste type (All includes consents) for each zone and regional office, by processing stage and across all stages; share = past limit ÷ open.',
+  fn: (s_pipeline_ro) => {
+    const out = [];
+    ['All', 'BMW', 'PWM', 'C&D', 'HZM', 'E-waste', 'SWM'].forEach((w) => {
+      const rs = w === 'All' ? s_pipeline_ro : s_pipeline_ro.filter((r) => r.waste === w);
+      const m = new Map();
+      const add = (level, zone, ro, stage, r) => {
+        const k = level + '|' + zone + '|' + ro + '|' + stage;
+        let o = m.get(k); if (!o) { o = { waste: w, level, zone, ro, stage, open: 0, over_sla: 0 }; m.set(k, o); }
+        o.open += Number(r.open); o.over_sla += Number(r.over_sla);
+      };
+      rs.forEach((r) => { add('zone', r.zone, '', r.stage, r); add('zone', r.zone, '', 'All stages', r); add('ro', r.zone, r.ro, r.stage, r); add('ro', r.zone, r.ro, 'All stages', r); });
+      m.forEach((o) => { o.over_share = o.open ? o.over_sla / o.open : null; out.push(o); });
+    });
+    return out;
+  },
+});
+dash.calc('c_waste', {
+  inputs: ['ar_monitoring', 's_waste'], title: 'Waste generation vs handling',
+  description: 'Per waste type: projected (sample), reported and handled (reported figures where available, else sample), and handling gap = (reported − handled) / reported.',
+  fn: (ar_monitoring, s_waste) => ['BMW', 'PWM', 'C&D', 'HZM', 'E-waste', 'SWM'].map((w) => {
+    const real = (item) => ar_monitoring.find((r) => r.metric === 'Waste handling' && r.waste === w && r.item === item);
+    const samp = (st) => s_waste.find((r) => r.waste === w && r.stage === st);
+    const rep = real('Reported generated'), han = real('Handled'), proj = samp('Projected');
+    const rep2 = rep || samp('Reported generated'), han2 = han || samp('Handled');
+    const reported = rep2 ? Number(rep2.value) : null, handled = han2 ? Number(han2.value) : null;
+    return { waste: w, unit: (rep2 || proj).unit, period: rep ? rep.period : 'Sample', projected: proj ? Number(proj.value) : null, reported, handled, reported_is_sample: !rep, handled_is_sample: !han, handling_gap: reported ? (reported - handled) / reported : null };
+  }),
+});
+dash.calc('c_labs', {
+  inputs: ['ar_labs', 's_labs_sites'], title: 'Laboratory quality',
+  description: 'Reported samples analysed per lab joined with sample NABL status, failure share and parameters tested ÷ prescribed.',
+  fn: (ar_labs, s_labs_sites) => ar_labs.map((l) => {
+    const s = s_labs_sites.find((r) => r.kind === 'lab' && r.name === l.lab) || {};
+    return { lab: l.lab, type: l.type, samples: Number(l.samples), nabl: s.nabl, fail_share: Number(s.fail_share), params_tested: Number(s.params_tested), params_prescribed: Number(s.params_prescribed), param_coverage: Number(s.params_tested) / Number(s.params_prescribed) };
+  }),
+});
+dash.calc('c_pm', {
+  inputs: ['ar_pm10'], title: 'Stations above PM10 standard',
+  description: 'Count of CAAQMS stations whose annual PM10 mean exceeds the 60 µg/m³ NAAQS annual standard.',
+  fn: (ar_pm10) => [{ over_standard: ar_pm10.filter((r) => Number(r.pm10) > 60).length, stations: ar_pm10.length }],
+});
+dash.calc('c_fin', {
+  inputs: ['ar_flc'], title: 'Board finances, FY 2025-26',
+  description: 'Total receipts and expenditure, surplus = receipts − expenditure, fee share of receipts, and Chandapura EC recovered ÷ levied.',
+  fn: (ar_flc) => {
+    const v = (k) => Number((ar_flc.find((r) => r.key === k) || {}).value);
+    const rec = v('fin.rec.total'), exp = v('fin.exp.total');
+    return [{ receipts: rec, expenditure: exp, surplus: rec - exp, fee_share: v('fin.rec.fees') / rec, ec_recovery_chandapura: v('fin.ec.chandapura.recovered') / v('fin.ec.chandapura.levied') }];
+  },
+});
+dash.calc('c_ec', {
+  inputs: ['s_legal_fin_cit'], title: 'Environmental compensation realisation',
+  description: 'Sample EC imposed and realised per waste type, realisation = realised / imposed, plus an All row.',
+  fn: (s_legal_fin_cit) => {
+    const rs = s_legal_fin_cit.filter((r) => r.kind === 'ec').map((r) => ({ waste: r.waste, imposed: Number(r.imposed), realised: Number(r.realised), realisation: Number(r.realised) / Number(r.imposed) }));
+    const i = rs.reduce((a, r) => a + r.imposed, 0), re = rs.reduce((a, r) => a + r.realised, 0);
+    rs.push({ waste: 'All', imposed: i, realised: re, realisation: re / i });
+    return rs;
+  },
+});
+dash.calc('c_legal', {
+  inputs: ['ar_flc'], title: 'Legal totals',
+  description: 'Court cases filed and pending summed across forums; closure directions issued and revoked summed across Acts.',
+  fn: (ar_flc) => {
+    const c = ar_flc.filter((r) => r.metric === 'Court cases'), d = ar_flc.filter((r) => r.metric === 'Closure directions');
+    return [{ cases_filed: c.reduce((a, r) => a + Number(r.filed), 0), cases_pending: c.reduce((a, r) => a + Number(r.pending), 0), closures_issued: d.reduce((a, r) => a + Number(r.issued), 0), closures_revoked: d.reduce((a, r) => a + Number(r.revoked), 0) }];
+  },
+});
+dash.calc('c_cit', {
+  inputs: ['ar_flc'], title: 'Complaint and RTI disposal',
+  description: 'Complaints resolved ÷ (opening pending + received); RTI disposed ÷ received.',
+  fn: (ar_flc) => {
+    const v = (k) => Number((ar_flc.find((r) => r.key === k) || {}).value);
+    return [{ resolution_rate: v('cit.resolved') / (v('cit.opening') + v('cit.received')), rti_disposal: v('cit.rti.disposed') / v('cit.rti.received') }];
+  },
+});
+</script>
+
+<script>
+(function () {
+  const C = dash.colors, fmt = window.kpFmt, rowsOf = window.kpRows, bar = window.kpBar, st = window.kpState, tab = window.kpTable;
+  const $ = (id) => document.getElementById(id);
+  const visible = (el) => !el.closest('.kp-page').hidden;
+  const pct = (v) => fmt(v, 'pct0');
+  const wOk = (r, w) => w === 'All' || r.waste === w;
+
+  // Choropleth of the 12 zones from district boundaries; Bengaluru's split districts go to an inset.
+  const zoneMap = (el, ZS, REF, G, m) => {
+    el.replaceChildren(); el.classList.remove('dash-skeleton');
+    const W = el.clientWidth; if (!W) return;
+    const probe = document.createElement('span'); el.appendChild(probe);
+    const cc = (v) => { probe.style.color = v; return getComputedStyle(probe).color; };
+    const base = cc('var(--color-panel)'), top = cc(m === 'officers' ? dash.colors[0] : 'var(--cds-chart-status-critical)'), muted = cc('var(--cds-chart-muted)'), fg = cc('var(--color-fg)');
+    probe.remove();
+    const byZone = new Map(ZS.filter((z) => z.zone !== 'All zones').map((z) => [z.zone, z]));
+    const vals = [...byZone.values()].map((z) => +z[m]);
+    const lo = d3.min(vals), hi = d3.max(vals);
+    const tOf = (v) => (hi > lo ? (v - lo) / (hi - lo) : 0.5);
+    const colorOf = (v) => (v == null || !isFinite(v) ? muted : d3.interpolateRgb(base, top)(0.12 + 0.8 * tOf(v)));
+    const textOn = (v) => (v != null && tOf(v) > 0.6 ? base : fg);
+    const vf = (v) => (m === 'officers' ? fmt(v) : fmt(v, 'pct0'));
+    const other = (z) => (m === 'officers' ? ['Inspections due ratio', fmt(z.pending_ratio, 'pct0')] : ['Officer strength', fmt(z.officers)]);
+    const rosOf = (zone) => REF.filter((r) => r.zone === zone).sort((a, b) => a.order - b.order).map((r) => r.ro).join(', ');
+
+    // legend
+    const lg = document.createElement('div'); lg.className = 'kp-scale';
+    const l1 = document.createElement('span'); l1.textContent = vf(lo);
+    const ramp = document.createElement('span'); ramp.className = 'ramp'; ramp.style.background = `linear-gradient(90deg, ${d3.interpolateRgb(base, top)(0.12)}, ${d3.interpolateRgb(base, top)(0.92)})`;
+    const l2 = document.createElement('span'); l2.textContent = vf(hi) + (m === 'officers' ? ' officers' : ' of due inspections pending');
+    lg.append(l1, ramp, l2); el.appendChild(lg);
+
+    const geoms = G.map((r) => ({ district: r.district, zone: r.zone, g: typeof r.geometry === 'string' ? JSON.parse(r.geometry) : r.geometry }));
+    const polys = (g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates);
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    geoms.forEach((d) => polys(d.g).forEach((p) => p[0].forEach(([x, y]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); })));
+    const wide = W >= 600, insetW = wide ? Math.min(230, W * 0.32) : Math.min(W, 260);
+    const mapW = wide ? W - insetW - 24 : W;
+    const kx = Math.cos(((y0 + y1) / 2) * Math.PI / 180);
+    const sc = Math.min(mapW / ((x1 - x0) * kx), 560 / (y1 - y0));
+    const mapH = (y1 - y0) * sc, offX = (mapW - (x1 - x0) * kx * sc) / 2;
+    const P = ([x, y]) => [offX + (x - x0) * kx * sc, (y1 - y) * sc];
+    const ts = Math.floor(Math.min(70, (insetW - 12) / 3));
+    const insetH = 26 + ts * 3 + 12;
+    const H = wide ? Math.max(mapH, insetH) + 4 : mapH + 20 + insetH;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+    const tip = document.createElement('div'); tip.className = 'kp-tip'; tip.hidden = true;
+    const showTip = (ev, lines) => {
+      tip.replaceChildren();
+      lines.forEach(([k, v], i) => { const d = document.createElement('div'); if (i === 0) { d.className = 't'; d.textContent = k; } else { d.className = 'r'; const a = document.createElement('span'); a.textContent = k; const b = document.createElement('span'); b.textContent = v; d.append(a, b); } tip.appendChild(d); });
+      tip.hidden = false;
+      const [px, py] = d3.pointer(ev, el);
+      tip.style.left = Math.max(0, Math.min(el.clientWidth - tip.offsetWidth, px + 12)) + 'px';
+      tip.style.top = Math.max(0, py - tip.offsetHeight - 8) + 'px';
+    };
+    const hide = () => { tip.hidden = true; };
+    const zoneTip = (zone, extra) => { const z = byZone.get(zone); return [[zone + ' zone'], [m === 'officers' ? 'Officer strength' : 'Inspections due ratio', vf(z[m])], other(z)].concat(extra || [], [['Regional offices', rosOf(zone)]]); };
+
+    // districts
+    const acc = new Map();
+    geoms.forEach((d) => {
+      const z = byZone.get(d.zone), metro = d.zone === 'Bengaluru metro';
+      let path = '';
+      polys(d.g).forEach((p) => p.forEach((ring) => { path += 'M' + ring.map((c) => P(c).map((n) => n.toFixed(1)).join(',')).join('L') + 'Z'; }));
+      svg.append('path').attr('d', path).attr('fill', metro ? muted : colorOf(z ? +z[m] : null)).attr('fill-opacity', metro ? 0.45 : 1)
+        .attr('stroke', base).attr('stroke-width', 0.8).attr('stroke-linejoin', 'round')
+        .on('mousemove', (ev) => showTip(ev, metro ? [[d.district], ['Split between', 'Bengaluru City, North, South, East and Ramanagara zones']] : zoneTip(d.zone, [['District', d.district]])))
+        .on('mouseleave', hide);
+      // area-weighted centroid per zone from outer rings
+      polys(d.g).forEach((p) => {
+        const pts = p[0].map(P); let a = 0, cx = 0, cy = 0;
+        for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const f = pts[j][0] * pts[i][1] - pts[i][0] * pts[j][1]; a += f; cx += (pts[j][0] + pts[i][0]) * f; cy += (pts[j][1] + pts[i][1]) * f; }
+        if (!a) return;
+        const s = acc.get(d.zone) || { a: 0, x: 0, y: 0 }; s.a += a / 2; s.x += cx / 6; s.y += cy / 6; acc.set(d.zone, s);
+      });
+    });
+    const showNames = mapW >= 380;
+    acc.forEach((s, zone) => {
+      const cx = s.x / s.a, cy = s.y / s.a;
+      if (zone === 'Bengaluru metro') { svg.append('text').attr('class', 'kp-tick').attr('x', cx).attr('y', cy).attr('text-anchor', 'middle').attr('dy', '0.35em').attr('pointer-events', 'none').text('Bengaluru'); return; }
+      const z = byZone.get(zone); if (!z) return;
+      const g = svg.append('g').attr('pointer-events', 'none').attr('text-anchor', 'middle');
+      const col = textOn(+z[m]);
+      if (showNames) g.append('text').attr('class', 'kp-lab').attr('x', cx).attr('y', cy - 7).attr('fill', col).style('fill', col).text(zone === 'Bengaluru East' ? 'B. East' : zone);
+      g.append('text').attr('class', 'kp-lab').attr('x', cx).attr('y', showNames ? cy + 8 : cy).attr('dy', showNames ? 0 : '0.35em').attr('font-weight', 600).style('fill', col).text(vf(z[m]));
+    });
+
+    // Bengaluru inset
+    const ix = wide ? mapW + 24 : Math.max(0, (W - insetW) / 2), iy = wide ? Math.max(0, mapH / 2 - insetH / 2) : mapH + 20;
+    const ig = svg.append('g').attr('transform', `translate(${ix},${iy})`);
+    ig.append('text').attr('class', 'kp-lab').attr('x', 0).attr('y', 12).attr('font-weight', 600).text('Bengaluru zones');
+    const tiles = [['Bengaluru North', 'North', 1, 0], ['Ramanagara', 'R R Nagar', 0, 1], ['Bengaluru City', 'City', 1, 1], ['Bengaluru East', 'East', 2, 1], ['Bengaluru South', 'South', 1, 2]];
+    tiles.forEach(([zone, lab, cx, cy]) => {
+      const z = byZone.get(zone); if (!z) return;
+      const tx = cx * (ts + 4), ty = 22 + cy * (ts + 4), v = +z[m], col = textOn(v);
+      const tg = ig.append('g').on('mousemove', (ev) => showTip(ev, zoneTip(zone, zone === 'Ramanagara' ? [['Shown for', 'R R Nagar regional office']] : []))).on('mouseleave', hide);
+      tg.append('rect').attr('x', tx).attr('y', ty).attr('width', ts).attr('height', ts).attr('rx', 4).attr('fill', colorOf(v)).attr('stroke', base);
+      tg.append('text').attr('class', 'kp-tick').attr('x', tx + ts / 2).attr('y', ty + ts / 2 - 6).attr('text-anchor', 'middle').style('fill', col).text(lab);
+      tg.append('text').attr('class', 'kp-lab').attr('x', tx + ts / 2).attr('y', ty + ts / 2 + 10).attr('text-anchor', 'middle').attr('font-weight', 600).style('fill', col).text(vf(v));
+    });
+    el.appendChild(tip);
+  };
+
+  const draw = () => {
+    const w = window.kpWaste();
+
+    // Enforcement
+    if (visible($('ch-category')) && st($('ch-category'), 'ar_enforcement')) {
+      const R = rowsOf('ar_enforcement');
+      const cats = ['Red', 'Orange', 'Green', 'White'].map((c) => { const g = (i) => Number((R.find((r) => r.metric === 'Industries by category' && r.group === c && r.item === i) || {}).value || 0); return { c, op: g('Operating'), cl: g('Closed'), ytc: g('Yet to commence') }; });
+      bar($('ch-category'), cats, { label: (r) => r.c, stacked: true, series: [{ f: 'op', name: 'Operating', color: C[0] }, { f: 'cl', name: 'Closed', color: 'var(--cds-chart-muted)' }, { f: 'ytc', name: 'Yet to commence', color: C[2] }] });
+    }
+    { const R = rowsOf('c_consent'); if (R) tab($('t-consent'), R, [{ f: 'type' }, { f: 'received', num: 1, fmt: (v) => fmt(v) }, { f: 'issued', num: 1, fmt: (v) => fmt(v) }, { f: 'refused', num: 1, fmt: (v) => fmt(v) }, { f: 'pending', num: 1, fmt: (v) => fmt(v) }, { f: 'disposal_rate', num: 1, fmt: (v) => fmt(v, 'pct') }]); }
+
+    const P = rowsOf('c_pipeline');
+    const pipeS = [{ f: 'within', name: 'Within Sakala limit', color: C[0] }, { f: 'over_sla', name: 'Past Sakala limit', color: 'var(--cds-chart-status-critical)' }];
+    const pipeTip = (r) => [['Open', fmt(r.open)]];
+    if (visible($('ch-pipe-stage'))) { if (st($('ch-pipe-stage'), 'c_pipeline')) bar($('ch-pipe-stage'), P.filter((r) => r.waste === w && r.level === 'stage'), { label: (r) => r.name, stacked: true, series: pipeS, tipExtra: pipeTip }); }
+    if (visible($('ch-pipe-module'))) { if (st($('ch-pipe-module'), 'c_pipeline')) bar($('ch-pipe-module'), P.filter((r) => r.waste === w && r.level === 'module'), { label: (r) => r.name, stacked: true, series: pipeS, tipExtra: pipeTip }); }
+
+    const E = rowsOf('ar_enforcement');
+    const AU = rowsOf('c_auth');
+    if (AU) {
+      const rows = AU.filter((r) => wOk(r, w));
+      const tb = $('t-auth').querySelector('tbody');
+      tb.replaceChildren(...rows.map((r) => {
+        const tr = document.createElement('tr');
+        [['waste'], ['required', 1], ['authorised', 1], ['pending', 1], ['refused', 1], ['without', 1], ['coverage', 1]].forEach(([f, num]) => {
+          const td = document.createElement('td');
+          td.textContent = f === 'waste' ? r.waste : f === 'coverage' ? fmt(r.coverage, 'pct') : fmt(r[f]);
+          if (num) td.className = 'num';
+          if (r.sample_fields.split(',').includes(f) || (f === 'required' && r.sample_fields)) { td.style.textDecoration = 'underline dashed var(--color-warn)'; td.style.textUnderlineOffset = '3px'; td.title = 'Sample'; }
+          if (f === 'coverage' && r.coverage < 0.85) td.style.color = 'var(--color-bad)';
+          tr.appendChild(td);
+        });
+        return tr;
+      }));
+      if (visible($('ch-auth')) && st($('ch-auth'), 'c_auth')) bar($('ch-auth'), rows.slice().sort((a, b) => a.coverage - b.coverage), { label: (r) => r.waste, max: 1, fmt: (v) => fmt(v, 'pct'), tickFmt: pct, ref: { value: 0.85, label: '85%' }, series: [{ f: 'coverage', name: 'Coverage', color: C[0], sample: (r) => !!r.sample_fields, colorFn: (r) => (r.coverage < 0.85 ? 'var(--cds-chart-status-critical)' : C[0]) }], tipExtra: (r) => [['Authorised', fmt(r.authorised)], ['Need authorisation', fmt(r.required)], ['Operating without', fmt(r.without)], ['Rules', r.rules], ['Source', r.sample_fields ? 'Partly sample' : 'Reported, FY 2025-26']] });
+    }
+
+    if (visible($('ch-validity')) && st($('ch-validity'), 'c_validity')) {
+      const V = rowsOf('c_validity').filter((r) => r.module !== 'All CFO' && (w === 'All' || r.waste === w));
+      const B = [['valid', 'Valid, over 90 days', 'var(--color-ok)'], ['exp30', 'Expiring ≤30 days', 'var(--color-warn)'], ['exp90', 'Expiring 31–90 days', C[3]], ['ex1', 'Expired <1 yr', C[5]], ['ex3', 'Expired 1–3 yrs', 'var(--cds-chart-status-critical)'], ['exmore', 'Expired >3 yrs', 'var(--color-bad)'], ['nodate', 'No date recorded', 'var(--cds-chart-muted)']];
+      bar($('ch-validity'), V, { label: (r) => r.module, stacked: true, max: 1, tickFmt: pct, endFmt: (r) => fmt(r.total), fmt: pct, series: B.map(([k, n, c]) => ({ f: 'share_' + k, name: n, color: c })), tipFmt: (v, r, s) => fmt(r[s.f.replace('share_', '')]) + ' · ' + pct(v) });
+    }
+
+    // zone order and RO lists from the official office mapping
+    const REF = rowsOf('ref_offices');
+    const zoneOrder = REF ? [...new Set(REF.slice().sort((a, b) => a.order - b.order).map((r) => r.zone))] : [];
+    const zoneSort = (a, b) => zoneOrder.indexOf(a.zone) - zoneOrder.indexOf(b.zone);
+
+    const hp = $('hm-pipe');
+    document.querySelectorAll('#pipe-metric .kp-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === window.kpPipeMetric)));
+    if (visible(hp) && st(hp, 'c_pipe_zone') && st(hp, 'ref_offices')) {
+      const m = window.kpPipeMetric, ex = window.kpExpanded;
+      const SH = { 'Scrutiny at RO': 'RO scrutiny', 'Query raised (QUE)': 'Query raised', 'Reply received (REP)': 'Reply received', 'e-Sign pending': 'e-Sign pending', 'Payment pending': 'Payment pending', 'Inspection': 'Inspection', 'Scrutiny at HO': 'HO scrutiny', 'Consent Committee': 'Consent Committee', 'All stages': 'All stages' };
+      const PZ = rowsOf('c_pipe_zone').filter((r) => r.waste === w);
+      const map = new Map(PZ.map((r) => [r.level + '|' + r.zone + '|' + r.ro + '|' + r.stage, r]));
+      const present = new Set(PZ.map((r) => r.stage));
+      const cols = Object.keys(SH).filter((s) => present.has(s)).map((s) => ({ label: SH[s], key: s, own: s === 'All stages', tot: s === 'All stages', crit: m !== 'open', rel: m === 'over_share' }));
+      const rows = [];
+      zoneOrder.forEach((z) => {
+        rows.push({ label: z, level: 'zone', zone: z, ro: '', open: ex.has(z) });
+        if (ex.has(z)) REF.filter((r) => r.zone === z).sort((a, b) => a.order - b.order).forEach((r) => rows.push({ label: r.ro, level: 'ro', zone: z, ro: r.ro, tip: r.jurisdiction }));
+      });
+      window.kpHeat(hp, {
+        rowHead: 'Zone / regional office', rows, cols, scaleKey: (r) => r.level,
+        val: (r, c) => { const x = map.get(r.level + '|' + r.zone + '|' + r.ro + '|' + c.key); return x ? x[m] : (m === 'over_share' ? null : 0); },
+        fmt: (v) => (m === 'over_share' ? fmt(v, 'pct0') : fmt(v)),
+        tip: (r, c) => { const x = map.get(r.level + '|' + r.zone + '|' + r.ro + '|' + c.key); const t = x ? [['Open', fmt(x.open)], ['Past Sakala limit', fmt(x.over_sla)]] : []; if (r.tip) t.push(['Covers', r.tip]); return t; },
+        onRow: (r) => { if (ex.has(r.zone)) ex.delete(r.zone); else ex.add(r.zone); draw(); },
+      });
+    }
+
+    const ZS = rowsOf('c_insp');
+    const zm = window.kpZoneMetric;
+    document.querySelectorAll('#zone-metric .kp-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === zm)));
+    $('zone-note-due').hidden = zm !== 'pending_ratio'; $('zone-note-off').hidden = zm !== 'officers';
+    const mz = $('map-zones');
+    if (visible(mz) && st(mz, 'c_insp') && st(mz, 'ref_offices') && st(mz, 'geo_districts')) zoneMap(mz, ZS, REF, rowsOf('geo_districts'), zm);
+    if (visible($('ch-insp-cat')) && st($('ch-insp-cat'), 's_inspections')) {
+      bar($('ch-insp-cat'), rowsOf('s_inspections').filter((r) => r.dim === 'category'), { label: (r) => r.name, series: [{ f: 'due', name: 'Due', color: 'var(--cds-chart-muted)' }, { f: 'done', name: 'Done', color: C[1] }] });
+    }
+    if (visible($('ch-dq')) && st($('ch-dq'), 's_quality')) {
+      bar($('ch-dq'), rowsOf('s_quality').filter((r) => w === 'All' ? true : r.waste === w || r.waste === ''), { label: (r) => r.indicator, max: 1, tickFmt: pct, fmt: pct, series: [{ f: 'value', name: 'Current', color: C[0], colorFn: (r) => (+r.value < 0.7 ? 'var(--cds-chart-status-critical)' : C[0]) }], mark: { f: 'target' }, tipExtra: (r) => [['Target', pct(r.target)], ['Group', r.group]] });
+    }
+
+    // Monitoring
+    const mini = $('waste-mini');
+    if (visible(mini)) {
+      const d = dash.data('c_waste');
+      mini.replaceChildren();
+      if (d.status === 'ok') {
+        mini.classList.remove('dash-skeleton');
+        d.data.filter((r) => wOk(r, w)).forEach((r) => {
+          const box = document.createElement('div');
+          const h = document.createElement('h4'); h.textContent = r.waste; const u = document.createElement('span'); u.textContent = r.unit + (r.handling_gap != null ? ' · gap ' + fmt(r.handling_gap, 'pct0') : ''); h.appendChild(u);
+          const ch = document.createElement('div'); ch.className = 'kp-chart'; ch.style.minHeight = '96px';
+          box.append(h, ch); mini.appendChild(box);
+          const rows = [{ k: 'Projected', v: r.projected, s: true }, { k: 'Reported', v: r.reported, s: r.reported_is_sample }, { k: 'Handled', v: r.handled, s: r.handled_is_sample }];
+          bar(ch, rows, { label: (x) => x.k, series: [{ f: 'v', name: r.unit, color: C[0], sample: (x) => x.s }], tipExtra: (x) => [['Source', x.s ? 'Sample' : 'Reported (' + r.period + ')']] });
+        });
+      } else st(mini, 'c_waste');
+    }
+    const M = rowsOf('ar_monitoring');
+    if (M) tab($('t-fac'), M.filter((r) => r.metric === 'Facilities' && wOk(r, w)), [{ f: 'waste' }, { f: 'item' }, { f: 'value', num: 1, fmt: (v) => fmt(v) }, { f: 'period' }], (r) => r.key);
+    if (visible($('ch-hzm'))) {
+      $('card-hzm').hidden = !(w === 'All' || w === 'HZM');
+      if (!$('card-hzm').hidden && st($('ch-hzm'), 'ar_monitoring')) bar($('ch-hzm'), M.filter((r) => r.metric === 'Hazardous waste stream'), { label: (r) => r.item, series: [{ f: 'value', name: 'MT/year', color: C[2] }] });
+    }
+    if (visible($('ch-pm10')) && st($('ch-pm10'), 'ar_pm10')) {
+      bar($('ch-pm10'), rowsOf('ar_pm10').slice().sort((a, b) => b.pm10 - a.pm10), { label: (r) => r.station, fmt: (v) => fmt(v, 'dec1'), series: [{ f: 'pm10', name: 'PM10 µg/m³', color: C[0], colorFn: (r) => (+r.pm10 > 60 ? 'var(--cds-chart-status-critical)' : C[0]) }], ref: { value: 60, label: 'Standard 60' }, barH: 12, tipExtra: (r) => [['City', r.city]] });
+    }
+    if (visible($('ch-capture')) && st($('ch-capture'), 's_labs_sites')) {
+      bar($('ch-capture'), rowsOf('s_labs_sites').filter((r) => r.kind === 'station').sort((a, b) => a.capture - b.capture), { label: (r) => r.name, max: 1, fmt: pct, tickFmt: pct, series: [{ f: 'capture', name: 'Data capture', color: C[0], sample: () => true, colorFn: (r) => (+r.capture < 0.75 ? 'var(--cds-chart-status-critical)' : C[0]) }], ref: { value: 0.75, label: '75%' }, barH: 12 });
+    }
+    if (visible($('ch-wq')) && st($('ch-wq'), 'ar_monitoring')) bar($('ch-wq'), M.filter((r) => r.metric === 'Water quality stations'), { label: (r) => r.item, series: [{ f: 'value', name: 'Stations', color: C[1] }] });
+    if (visible($('ch-sewage')) && st($('ch-sewage'), 'ar_monitoring')) bar($('ch-sewage'), M.filter((r) => r.metric === 'Bengaluru sewage'), { label: (r) => r.item, fmt: (v) => fmt(v, 'dec1'), series: [{ f: 'value', name: 'MLD', color: C[1] }] });
+    if (visible($('ch-labs')) && st($('ch-labs'), 'ar_labs')) bar($('ch-labs'), rowsOf('ar_labs'), { label: (r) => r.lab, series: [{ f: 'samples', name: 'Samples', color: C[0] }], tipExtra: (r) => [['Lab type', r.type]] });
+    const L = rowsOf('c_labs');
+    if (L) tab($('t-labs'), L, [{ f: 'lab' }, { f: 'samples', num: 1, fmt: (v) => fmt(v) }, { f: 'nabl', pill: (v) => v === 'Yes' }, { f: 'fail_share', num: 1, fmt: (v) => fmt(v, 'pct0') }, { f: 'param_coverage', num: 1, fmt: (v, r) => r.params_tested + ' of ' + r.params_prescribed }]);
+
+    // Financials
+    const F = rowsOf('ar_flc');
+    if (visible($('ch-receipts')) && st($('ch-receipts'), 'ar_flc')) bar($('ch-receipts'), F.filter((r) => r.metric === 'Receipts'), { label: (r) => r.item, fmt: (v) => fmt(v), series: [{ f: 'value', name: 'Rs lakh', color: C[0] }] });
+    if (visible($('ch-expend')) && st($('ch-expend'), 'ar_flc')) bar($('ch-expend'), F.filter((r) => r.metric === 'Expenditure'), { label: (r) => r.item, series: [{ f: 'value', name: 'Rs lakh', color: C[3] }] });
+    if (visible($('ch-ec')) && st($('ch-ec'), 'c_ec')) bar($('ch-ec'), rowsOf('c_ec').filter((r) => r.waste !== 'All' && wOk(r, w)), { label: (r) => r.waste, series: [{ f: 'imposed', name: 'Imposed', color: 'var(--cds-chart-muted)', sample: () => true }, { f: 'realised', name: 'Realised', color: C[0], sample: () => true }], tipExtra: (r) => [['Realisation', fmt(r.realisation, 'pct')]] });
+
+    // Legal
+    if (visible($('ch-cases')) && st($('ch-cases'), 'ar_flc')) bar($('ch-cases'), F.filter((r) => r.metric === 'Court cases'), { label: (r) => r.item, stacked: true, series: [{ f: 'disposed', name: 'Disposed', color: 'var(--cds-chart-muted)' }, { f: 'pending', name: 'Pending', color: C[0] }] });
+    if (visible($('ch-closure')) && st($('ch-closure'), 'ar_flc')) bar($('ch-closure'), F.filter((r) => r.metric === 'Closure directions'), { label: (r) => r.item, series: [{ f: 'issued', name: 'Issued', color: C[0] }, { f: 'revoked', name: 'Revoked', color: C[2] }] });
+    const S = rowsOf('s_legal_fin_cit');
+    if (S) {
+      const dfmt = d3.utcFormat('%-d %b %Y');
+      tab($('t-hearings'), S.filter((r) => r.kind === 'hearing' && (w === 'All' || r.waste === w)).sort((a, b) => a.next_date.localeCompare(b.next_date)), [{ f: 'next_date', fmt: (v) => dfmt(new Date(v)) }, { f: 'name' }, { f: 'forum' }, { f: 'subject' }, { f: 'zone' }, { f: 'stage' }], (r) => r.id);
+      tab($('t-cmp'), S.filter((r) => r.kind === 'complaint'), [{ f: 'name' }, { f: 'received', num: 1, fmt: (v) => fmt(v) }, { f: 'resolved', num: 1, fmt: (v) => fmt(v) }, { f: 'avg_days', num: 1, fmt: (v) => fmt(v) }], (r) => r.id);
+    }
+    if (visible($('ch-directions')) && st($('ch-directions'), 's_legal_fin_cit')) bar($('ch-directions'), S.filter((r) => r.kind === 'direction'), { label: (r) => r.name, stacked: true, series: [{ f: 'complied', name: 'Complied', color: C[0], sample: () => true }, { f: 'pending', name: 'Pending', color: 'var(--cds-chart-status-critical)', sample: () => true }] });
+
+    // Citizen
+    const hc = $('hm-cmp');
+    if (visible(hc) && st(hc, 'c_insp') && st(hc, 'ref_offices')) {
+      window.kpHeat(hc, {
+        rowHead: 'Zone', perCol: true,
+        rows: ZS.filter((r) => r.zone !== 'All zones').sort(zoneSort).map((r) => Object.assign({ label: r.zone }, r)),
+        cols: [{ label: 'Received', key: 'complaints_received' }, { label: 'Resolved', key: 'complaints_resolved' }, { label: 'Resolved ÷ received', key: 'complaint_ratio', rel: 1, invert: 1, crit: 1 }],
+        val: (r, c) => r[c.key],
+        fmt: (v, c) => (c.key === 'complaint_ratio' ? fmt(v, 'pct0') : fmt(v)),
+      });
+    }
+  };
+  window.kpDraw = draw;
+  window.kpPipeMetric = 'open';
+  window.kpZoneMetric = 'pending_ratio';
+  document.querySelectorAll('#zone-metric .kp-chip').forEach((b) => b.addEventListener('click', () => { window.kpZoneMetric = b.dataset.m; draw(); }));
+  window.kpExpanded = new Set();
+  document.querySelectorAll('#pipe-metric .kp-chip').forEach((b) => b.addEventListener('click', () => { window.kpPipeMetric = b.dataset.m; draw(); }));
+  document.getElementById('pipe-expand').addEventListener('click', () => { (rowsOf('ref_offices') || []).forEach((r) => window.kpExpanded.add(r.zone)); draw(); });
+  document.getElementById('pipe-collapse').addEventListener('click', () => { window.kpExpanded.clear(); draw(); });
+
+  dash.onData(() => { window.kpFill(); draw(); });
+
+  const named = location.hash.slice(1);
+  if (['enforcement', 'monitoring', 'financials', 'legal', 'citizen'].includes(named)) window.kpShow(named);
+})();
+</script>
+
+</div>
+<footer class="site-foot">Sample dashboard, FY 2025-26. Figures marked Sample are illustrative.</footer>
+</body>
+</html>

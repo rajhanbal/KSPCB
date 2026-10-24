@@ -1,0 +1,14 @@
+[
+{"zone":"Bengaluru City","red_operating":312,"orange_operating":813,"inspections":1963,"iso14001":45,"complaints_received":311,"complaints_resolved":326},
+{"zone":"Bengaluru East","red_operating":229,"orange_operating":470,"inspections":2315,"iso14001":83,"complaints_received":255,"complaints_resolved":254},
+{"zone":"Bengaluru North","red_operating":328,"orange_operating":727,"inspections":1447,"iso14001":49,"complaints_received":446,"complaints_resolved":380},
+{"zone":"Bengaluru South","red_operating":336,"orange_operating":498,"inspections":2276,"iso14001":64,"complaints_received":185,"complaints_resolved":182},
+{"zone":"Belagavi","red_operating":140,"orange_operating":339,"inspections":2002,"iso14001":27,"complaints_received":161,"complaints_resolved":163},
+{"zone":"Davanagere","red_operating":117,"orange_operating":721,"inspections":1494,"iso14001":36,"complaints_received":247,"complaints_resolved":254},
+{"zone":"Dharwad","red_operating":64,"orange_operating":191,"inspections":1371,"iso14001":31,"complaints_received":163,"complaints_resolved":166},
+{"zone":"Kalaburagi","red_operating":96,"orange_operating":203,"inspections":1053,"iso14001":20,"complaints_received":126,"complaints_resolved":125},
+{"zone":"Mangaluru","red_operating":110,"orange_operating":947,"inspections":1893,"iso14001":51,"complaints_received":348,"complaints_resolved":353},
+{"zone":"Mysuru","red_operating":160,"orange_operating":442,"inspections":1779,"iso14001":92,"complaints_received":299,"complaints_resolved":301},
+{"zone":"Ramanagara","red_operating":201,"orange_operating":538,"inspections":1326,"iso14001":39,"complaints_received":202,"complaints_resolved":203},
+{"zone":"Vijayanagara","red_operating":145,"orange_operating":600,"inspections":1205,"iso14001":43,"complaints_received":270,"complaints_resolved":271}
+]

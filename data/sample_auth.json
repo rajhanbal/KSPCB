@@ -1,0 +1,7 @@
+[
+{"waste":"HZM","rules":"Hazardous and Other Wastes Rules, 2016","pending":142,"refused":18,"without":236},
+{"waste":"PWM","rules":"Plastic Waste Management Rules, 2016 (EPR)","pending":14,"refused":9,"without":105},
+{"waste":"E-waste","rules":"E-Waste (Management) Rules, 2022","pending":21,"refused":3,"without":8},
+{"waste":"C&D","rules":"Construction and Demolition Waste Rules, 2016","pending":9,"refused":1,"without":4},
+{"waste":"SWM","rules":"Solid Waste Management Rules, 2016","authorised":315,"pending":46,"refused":2,"without":0}
+]

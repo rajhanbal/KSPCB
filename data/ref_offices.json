@@ -1,0 +1,272 @@
+[
+    {
+        "ro":  "Bengaluru City East",
+        "zone":  "Bengaluru City",
+        "jurisdiction":  "Wards of BBMP East Zone",
+        "order":  1
+    },
+    {
+        "ro":  "Bengaluru City West",
+        "zone":  "Bengaluru City",
+        "jurisdiction":  "Wards of BBMP West Zone",
+        "order":  2
+    },
+    {
+        "ro":  "Bengaluru City South",
+        "zone":  "Bengaluru City",
+        "jurisdiction":  "Anekal, Bommanahalli, Sarjapura",
+        "order":  3
+    },
+    {
+        "ro":  "Bengaluru Peenya",
+        "zone":  "Bengaluru City",
+        "jurisdiction":  "Peenya Industrial Estate and Peenya Industrial Area (excluding Phase-1)",
+        "order":  4
+    },
+    {
+        "ro":  "Bengaluru Yelahanka",
+        "zone":  "Bengaluru North",
+        "jurisdiction":  "BBMP wards of Bytarayanapura; Kasaba, Jala and Yelahanka Hobli (outside BBMP)",
+        "order":  5
+    },
+    {
+        "ro":  "Bengaluru Dasarahalli",
+        "zone":  "Bengaluru North",
+        "jurisdiction":  "Wards of Dasarahalli Zone (BBMP); Peenya Industrial Area Phase-1, Hesaraghatta, Dasanapura, Yeshwanthpura Hobli",
+        "order":  6
+    },
+    {
+        "ro":  "Doddaballapura",
+        "zone":  "Bengaluru North",
+        "jurisdiction":  "Doddaballapura Taluk",
+        "order":  7
+    },
+    {
+        "ro":  "Bengaluru Nelamangala",
+        "zone":  "Bengaluru North",
+        "jurisdiction":  "Nelamangala Taluk",
+        "order":  8
+    },
+    {
+        "ro":  "Bengaluru Anekal",
+        "zone":  "Bengaluru South",
+        "jurisdiction":  "Kasaba and Jigani Hobli of Anekal Taluk",
+        "order":  9
+    },
+    {
+        "ro":  "Bengaluru Bommanahalli",
+        "zone":  "Bengaluru South",
+        "jurisdiction":  "Wards of BBMP Bommanahalli Zone",
+        "order":  10
+    },
+    {
+        "ro":  "Bengaluru Sarjapura",
+        "zone":  "Bengaluru South",
+        "jurisdiction":  "Sarjapur and Attibele Hobli of Anekal Taluk",
+        "order":  11
+    },
+    {
+        "ro":  "Chikkaballapura",
+        "zone":  "Bengaluru East",
+        "jurisdiction":  "Chikkaballapura district",
+        "order":  12
+    },
+    {
+        "ro":  "Bengaluru Hoskote",
+        "zone":  "Bengaluru East",
+        "jurisdiction":  "Hoskote and Devanahalli Taluks",
+        "order":  13
+    },
+    {
+        "ro":  "Kolar",
+        "zone":  "Bengaluru East",
+        "jurisdiction":  "Kolar district",
+        "order":  14
+    },
+    {
+        "ro":  "Bengaluru Mahadevapura",
+        "zone":  "Bengaluru East",
+        "jurisdiction":  "Wards of BBMP Mahadevapura Zone",
+        "order":  15
+    },
+    {
+        "ro":  "Bengaluru R R Nagar",
+        "zone":  "Ramanagara",
+        "jurisdiction":  "BBMP wards of Rajarajeshwarinagar Zone; Kengeri, Uttarahalli, Taverekere Hobli",
+        "order":  16
+    },
+    {
+        "ro":  "Ramanagara",
+        "zone":  "Ramanagara",
+        "jurisdiction":  "Ramanagara district",
+        "order":  17
+    },
+    {
+        "ro":  "Mandya",
+        "zone":  "Ramanagara",
+        "jurisdiction":  "Mandya district",
+        "order":  18
+    },
+    {
+        "ro":  "Chamarajanagar",
+        "zone":  "Mysuru",
+        "jurisdiction":  "Chamarajanagar district",
+        "order":  19
+    },
+    {
+        "ro":  "Hassan",
+        "zone":  "Mysuru",
+        "jurisdiction":  "Hassan district",
+        "order":  20
+    },
+    {
+        "ro":  "Kodagu",
+        "zone":  "Mysuru",
+        "jurisdiction":  "Kodagu district",
+        "order":  21
+    },
+    {
+        "ro":  "Mysuru-1 (City)",
+        "zone":  "Mysuru",
+        "jurisdiction":  "Mysuru Mahanagara Palike area, Belagola, Hebbal and Metagalli industrial areas",
+        "order":  22
+    },
+    {
+        "ro":  "Mysuru-2 (Rural)",
+        "zone":  "Mysuru",
+        "jurisdiction":  "Mysuru rural, Hootagalli, Belawadi, Koorgalli; Nanjangud, H.D.Kote, Hunsur, K.R.Nagar, Piriyapatna, T.Narasipur Taluks",
+        "order":  23
+    },
+    {
+        "ro":  "Chikkamagaluru",
+        "zone":  "Mangaluru",
+        "jurisdiction":  "Chikkamagaluru district",
+        "order":  24
+    },
+    {
+        "ro":  "Karwar",
+        "zone":  "Mangaluru",
+        "jurisdiction":  "Uttara Kannada district",
+        "order":  25
+    },
+    {
+        "ro":  "Mangaluru",
+        "zone":  "Mangaluru",
+        "jurisdiction":  "Dakshina Kannada district",
+        "order":  26
+    },
+    {
+        "ro":  "Udupi",
+        "zone":  "Mangaluru",
+        "jurisdiction":  "Udupi district",
+        "order":  27
+    },
+    {
+        "ro":  "Chitradurga",
+        "zone":  "Davanagere",
+        "jurisdiction":  "Chitradurga district",
+        "order":  28
+    },
+    {
+        "ro":  "Davanagere",
+        "zone":  "Davanagere",
+        "jurisdiction":  "Davanagere district",
+        "order":  29
+    },
+    {
+        "ro":  "Shivamogga",
+        "zone":  "Davanagere",
+        "jurisdiction":  "Shivamogga district",
+        "order":  30
+    },
+    {
+        "ro":  "Tumakuru",
+        "zone":  "Davanagere",
+        "jurisdiction":  "Tumakuru district",
+        "order":  31
+    },
+    {
+        "ro":  "Bagalkot",
+        "zone":  "Dharwad",
+        "jurisdiction":  "Bagalkot district",
+        "order":  32
+    },
+    {
+        "ro":  "Dharwad",
+        "zone":  "Dharwad",
+        "jurisdiction":  "Dharwad district",
+        "order":  33
+    },
+    {
+        "ro":  "Haveri",
+        "zone":  "Dharwad",
+        "jurisdiction":  "Haveri district",
+        "order":  34
+    },
+    {
+        "ro":  "Gadag",
+        "zone":  "Dharwad",
+        "jurisdiction":  "Gadag district",
+        "order":  35
+    },
+    {
+        "ro":  "Belagavi-1",
+        "zone":  "Belagavi",
+        "jurisdiction":  "Belagavi Mahanagara Palike; Bylahongal, Ramdurga, Khanapura, Savadatti Taluks",
+        "order":  36
+    },
+    {
+        "ro":  "Belagavi-2 (Chikkodi)",
+        "zone":  "Belagavi",
+        "jurisdiction":  "Chikkodi, Athani, Hukkeri, Raibhag, Gokak Taluks",
+        "order":  37
+    },
+    {
+        "ro":  "Vijayapura",
+        "zone":  "Belagavi",
+        "jurisdiction":  "Vijayapura district",
+        "order":  38
+    },
+    {
+        "ro":  "Vijayanagara",
+        "zone":  "Vijayanagara",
+        "jurisdiction":  "Hoovina Hadagali, Hospet, H.B.Halli, Kudligi, Harapanahalli",
+        "order":  39
+    },
+    {
+        "ro":  "Ballari",
+        "zone":  "Vijayanagara",
+        "jurisdiction":  "Ballari, Sanduru, Siruguppa, Kurugodu, Kampli",
+        "order":  40
+    },
+    {
+        "ro":  "Koppal",
+        "zone":  "Vijayanagara",
+        "jurisdiction":  "Koppal district",
+        "order":  41
+    },
+    {
+        "ro":  "Raichur",
+        "zone":  "Vijayanagara",
+        "jurisdiction":  "Raichur district",
+        "order":  42
+    },
+    {
+        "ro":  "Bidar",
+        "zone":  "Kalaburagi",
+        "jurisdiction":  "Bidar district",
+        "order":  43
+    },
+    {
+        "ro":  "Kalaburagi",
+        "zone":  "Kalaburagi",
+        "jurisdiction":  "Kalaburagi district",
+        "order":  44
+    },
+    {
+        "ro":  "Yadgiri",
+        "zone":  "Kalaburagi",
+        "jurisdiction":  "Yadgiri district",
+        "order":  45
+    }
+]

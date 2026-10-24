@@ -1,0 +1,17 @@
+[
+{"id":"z.bc","dim":"zone","name":"Bengaluru City","due":2600,"officers":14},
+{"id":"z.be","dim":"zone","name":"Bengaluru East","due":2900,"officers":15},
+{"id":"z.bn","dim":"zone","name":"Bengaluru North","due":2650,"officers":13},
+{"id":"z.bs","dim":"zone","name":"Bengaluru South","due":2700,"officers":14},
+{"id":"z.bel","dim":"zone","name":"Belagavi","due":2450,"officers":10},
+{"id":"z.dvg","dim":"zone","name":"Davanagere","due":2300,"officers":9},
+{"id":"z.dwd","dim":"zone","name":"Dharwad","due":1900,"officers":8},
+{"id":"z.klb","dim":"zone","name":"Kalaburagi","due":1800,"officers":7},
+{"id":"z.mng","dim":"zone","name":"Mangaluru","due":2550,"officers":11},
+{"id":"z.mys","dim":"zone","name":"Mysuru","due":2350,"officers":11},
+{"id":"z.rmn","dim":"zone","name":"Ramanagara","due":2150,"officers":9},
+{"id":"z.vjn","dim":"zone","name":"Vijayanagara","due":2100,"officers":8},
+{"id":"c.red","dim":"category","name":"Red","due":9600,"done":7900},
+{"id":"c.orange","dim":"category","name":"Orange","due":12000,"done":8100},
+{"id":"c.green","dim":"category","name":"Green","due":6850,"done":4124}
+]

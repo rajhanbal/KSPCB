@@ -1,0 +1,13 @@
+[
+{"id":"dq.profile","group":"Data quality","waste":"","indicator":"Unit profiles complete (investment, water use, effluent, location)","value":0.64,"target":0.95},
+{"id":"dq.validity","group":"Data quality","waste":"","indicator":"Consents with a valid-upto date recorded","value":0.97,"target":0.99},
+{"id":"dq.geo","group":"Data quality","waste":"","indicator":"Units with latitude and longitude","value":0.71,"target":0.95},
+{"id":"dq.hcf","group":"Data quality","waste":"BMW","indicator":"HCFs with a disposal mode recorded","value":0.83,"target":0.95},
+{"id":"dq.form4","group":"Data quality","waste":"HZM","indicator":"HW generators with Form 4 quantities","value":0.76,"target":0.95},
+{"id":"ret.bmw","group":"Annual returns","waste":"BMW","indicator":"BMW Form IV filed by 30 June","value":0.72,"target":0.95},
+{"id":"ret.hzm","group":"Annual returns","waste":"HZM","indicator":"HWM Form 4 filed by 30 June","value":0.81,"target":0.95},
+{"id":"ret.swm","group":"Annual returns","waste":"SWM","indicator":"SWM annual returns filed by ULBs","value":0.46,"target":0.95},
+{"id":"ret.pwm","group":"Annual returns","waste":"PWM","indicator":"PWM annual returns filed (PIBOs, processors)","value":0.58,"target":0.95},
+{"id":"ret.ew","group":"Annual returns","waste":"E-waste","indicator":"E-waste Form 3 filed","value":0.39,"target":0.95},
+{"id":"ret.cd","group":"Annual returns","waste":"C&D","indicator":"C&D monthly progress reports received","value":0.5,"target":0.95}
+]
