@@ -1,0 +1,6 @@
+[
+{"key":"ec.collected","item":"Compensation collected (excluding interest)","value":163995976,"unit":"Rs","source":"KSPCB report quoted in Bangalore Mirror, 'Dormant account'"},
+{"key":"ec.interest","item":"Interest accrued","value":25976850,"unit":"Rs","source":"KSPCB report quoted in Bangalore Mirror, 'Dormant account'"},
+{"key":"ec.total","item":"Total available including interest","value":189972826,"unit":"Rs","source":"KSPCB report quoted in Bangalore Mirror, 'Dormant account'"},
+{"key":"ec.utilised","item":"Utilised for any purpose","value":0,"unit":"Rs","source":"KSPCB report quoted in Bangalore Mirror, 'Dormant account'"}
+]

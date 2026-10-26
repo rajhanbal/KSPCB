@@ -17,6 +17,9 @@
     s_labs_sites: 'sample_labs_sites.json',
     s_legal_fin_cit: 'sample_legal_fin_cit.json',
     s_auth: 'sample_auth.json',
+    s_hotspots: 'sample_hotspots.json',
+    ref_stations: 'ref_stations.json',
+    r_ec_fund: 'reported_ec_fund.json',
     ref_offices: 'ref_offices.json',
     geo_districts: 'geo_districts.json',
   };

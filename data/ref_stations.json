@@ -1,0 +1,134 @@
+[
+    {
+        "station":  "HSR Layout / Silk Board",
+        "lat":  12.917,
+        "lon":  77.623,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "RVCE",
+        "lat":  12.924,
+        "lon":  77.499,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Kasturinagar",
+        "lat":  13.003,
+        "lon":  77.659,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Jayanagar",
+        "lat":  12.925,
+        "lon":  77.584,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Kavika",
+        "lat":  12.951,
+        "lon":  77.537,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Majestic",
+        "lat":  12.977,
+        "lon":  77.572,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Jigani",
+        "lat":  12.786,
+        "lon":  77.638,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Peenya",
+        "lat":  13.028,
+        "lon":  77.519,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Hebbal",
+        "lat":  13.035,
+        "lon":  77.597,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "NIMHANS",
+        "lat":  12.938,
+        "lon":  77.596,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Nisarga Bhavan",
+        "lat":  12.99,
+        "lon":  77.553,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Tumakuru",
+        "lat":  13.34,
+        "lon":  77.101,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Raichur",
+        "lat":  16.203,
+        "lon":  77.356,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Dharwad",
+        "lat":  15.458,
+        "lon":  75.008,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Mangaluru",
+        "lat":  12.914,
+        "lon":  74.856,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Hubballi - Lingarajnagar",
+        "lat":  15.364,
+        "lon":  75.124,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Kalaburagi",
+        "lat":  17.329,
+        "lon":  76.834,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Belagavi",
+        "lat":  15.85,
+        "lon":  74.498,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Bidar",
+        "lat":  17.913,
+        "lon":  77.52,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Mysuru",
+        "lat":  12.296,
+        "lon":  76.639,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Shivamogga",
+        "lat":  13.929,
+        "lon":  75.568,
+        "precision":  "approximate"
+    },
+    {
+        "station":  "Madikeri",
+        "lat":  12.421,
+        "lon":  75.738,
+        "precision":  "approximate"
+    }
+]

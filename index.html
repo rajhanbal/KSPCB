@@ -37,7 +37,7 @@
 
 .kp-shell { display: grid; grid-template-columns: 13.5rem minmax(0, 1fr); gap: var(--cds-gap-lg); align-items: start; }
 .kp-shell.collapsed { grid-template-columns: 2.5rem minmax(0, 1fr); }
-@media (max-width: 760px) { .kp-shell, .kp-shell.collapsed { grid-template-columns: minmax(0, 1fr); } .kp-filters { position: static; } }
+@media (max-width: 760px) { .kp-shell, .kp-shell.collapsed { grid-template-columns: minmax(0, 1fr); } .kp-shell .kp-filters { position: static; } }
 .kp-filters { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); position: sticky; top: var(--cds-gap-md); }
 .kp-shell.collapsed .kp-filters { padding: var(--cds-pad-sm) var(--cds-pad-xs); }
 .kp-shell.collapsed .kp-fbody, .kp-shell.collapsed .kp-ftitle { display: none; }
@@ -156,6 +156,38 @@
 #kp .kp-sec { border-left: 4px solid var(--gp-saffron); padding-left: 10px; font-weight: 600; }
 #kp .kp-chip, #kp .kp-badge, #kp .kp-btn { border-radius: 3px; }
 #kp .kp-table th { background: var(--gp-head); }
+.kp-alerts { display: flex; flex-direction: column; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 2px; min-height: 120px; margin-bottom: var(--cds-gap-sm); }
+.kp-alert { border-left: 4px solid var(--color-warn); border-bottom: 1px solid var(--color-border-line); padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kp-alert:last-child { border-bottom: 0; }
+.kp-go { appearance: none; background: none; border: 0; padding: 0; font: inherit; color: var(--kp-accent); font-weight: 600; cursor: pointer; white-space: nowrap; }
+.kp-go:hover { text-decoration: underline; }
+.kp-go:focus-visible { outline: 2px solid var(--kp-accent); outline-offset: 2px; }
+.kp-alert.sev-high { border-left-color: var(--color-bad); }
+.kp-alert-h { display: flex; gap: 8px; align-items: center; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.kp-sev { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 3px; border: 1px solid currentColor; text-transform: uppercase; letter-spacing: .04em; }
+.kp-sev.high { color: var(--color-bad); }
+.kp-sev.medium { color: var(--color-warn); }
+.kp-alert p { margin: 0; line-height: 1.5; }
+.kp-alert .what { font-size: 14px; color: var(--color-fg); }
+.kp-alert .what [data-source] { font-weight: 600; }
+.kp-alert .act { font-size: 13px; color: var(--color-fg-muted); }
+.kp-alert .act b { color: var(--color-fg); }
+.kp-alert .kp-btn { align-self: flex-start; margin-top: auto; }
+.kp-area { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-md); }
+.kp-area .kp-note { font-size: 13.5px; color: var(--color-fg); line-height: 1.55; }
+.kp-hot { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: var(--cds-gap-lg); align-items: start; }
+@media (max-width: 900px) { .kp-hot { grid-template-columns: minmax(0, 1fr); } }
+.kp-hot-list h4 { margin: 0 0 6px; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+.kp-hot-list ol { list-style: none; margin: 0; padding: 0; }
+.kp-hot-list li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; font-size: 13px; padding: 7px 0; border-bottom: 1px solid var(--color-border-line); }
+.kp-hot-list .d { width: 10px; height: 10px; border-radius: 50%; align-self: center; }
+.kp-hot-list small { display: block; color: var(--color-fg-muted); font-size: 12px; }
+.kp-hot-list .x { font-variant-numeric: tabular-nums; font-weight: 600; }
+.kp-navf { display: flex; gap: var(--cds-gap-md); flex-wrap: wrap; align-items: center; min-width: 0; max-width: 100%; }
+.kp-navf .kp-fy { min-width: 0; max-width: 100%; }
+.kp-navf .kp-fy span { white-space: nowrap; }
+#kp .kp-navf select { max-width: min(16rem, 100%); min-width: 0; text-overflow: ellipsis; }
+#kp .kp-shell, #kp .kp-shell.collapsed { grid-template-columns: minmax(0, 1fr); }
 #kp .kp-tiles { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.25rem), 1fr)); }
 
 </style>
@@ -167,29 +199,50 @@
 
   <div class="kp-nav">
     <div class="kp-tabs" role="tablist" id="tabs">
-      <button class="kp-tab" role="tab" data-tab="enforcement" aria-selected="true">Enforcement</button>
+      <button class="kp-tab" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+      <button class="kp-tab" role="tab" data-tab="enforcement" aria-selected="false">Enforcement</button>
       <button class="kp-tab" role="tab" data-tab="monitoring" aria-selected="false">Monitoring</button>
       <button class="kp-tab" role="tab" data-tab="financials" aria-selected="false">Financials</button>
       <button class="kp-tab" role="tab" data-tab="legal" aria-selected="false">Legal</button>
       <button class="kp-tab" role="tab" data-tab="citizen" aria-selected="false">Citizen corner</button>
     </div>
-    <label class="kp-fy" for="fy-select"><span>Financial year</span><select id="fy-select" data-source="ar_enforcement"></select></label>
+    <div class="kp-navf">
+      <label class="kp-fy" for="waste-select" title="Applies to cards marked with the waste-type badge. Consent (CFE/CFO) items show only under All waste types."><span>Waste type</span><select id="waste-select"></select></label>
+      <label class="kp-fy" for="fy-select"><span>Financial year</span><select id="fy-select" data-source="ar_enforcement"></select></label>
+    </div>
   </div>
 
   <div class="kp-shell" id="shell">
-    <aside class="kp-filters" id="filters">
-      <div class="kp-fhead"><span class="kp-ftitle">Filters</span><button class="kp-btn" id="fcollapse" aria-label="Collapse filters">«</button></div>
-      <div class="kp-fbody">
-        <div class="kp-flabel">Waste type</div>
-        <div class="kp-chips" id="wchips"></div>
-        <p class="kp-fhelp">Applies to cards marked with the waste-type badge. Consent (CFE/CFO) items show only under All.</p>
-        <button class="kp-btn" id="freset" style="margin-top: var(--cds-gap-sm)">Reset filters</button>
-      </div>
-    </aside>
 
     <div>
     <!-- ENFORCEMENT -->
-    <section class="kp-page" id="enforcement" role="tabpanel">
+    <!-- OVERVIEW -->
+    <section class="kp-page" id="overview" role="tabpanel">
+      <div class="kp-tiles">
+        <div class="kp-tile"><span class="lbl">Consent disposal rate</span><span class="big v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</span><span class="sub">applications decided in <span class="fy-label">FY 2025-26</span></span></div>
+        <div class="kp-tile flag"><span class="lbl">Past Sakala time limit <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_pipeline" data-where="waste=All&amp;level=total" data-field="over_sla">—</span><span class="sub">open applications</span></div>
+        <div class="kp-tile flag"><span class="lbl">Units without valid CFO <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expired">—</span><span class="sub">consent expired</span></div>
+        <div class="kp-tile flag"><span class="lbl">Compensation fund unused</span><span class="big v dash-skeleton" data-source="r_ec_fund" data-where="key=ec.total" data-field="value" data-fmt="crore">—</span><span class="sub">cumulative</span></div>
+      </div>
+
+      <h2 class="kp-sec">Needs attention <small>Top concerns for the selected year</small></h2>
+      <div class="kp-alerts dash-skeleton" id="ov-alerts" data-source="c_pipeline c_pipe_zone c_validity ar_enforcement c_auth c_insp c_waste c_pm c_hotspots ar_monitoring r_ec_fund c_legal ar_flc c_ov_labs"></div>
+      <button class="kp-btn" id="ov-more" hidden></button>
+      <div hidden>
+        <section class="kp-card" id="ov-enf"><header class="kp-card-h"><h3>Enforcement</h3><button class="kp-btn" data-go="enforcement">Open →</button></header><div class="kp-card-b">
+          <p class="kp-note"><b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</b> consent applications received; <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="pending">—</b> still under process. Inspections due ratio <b class="v dash-skeleton" data-source="c_insp" data-where="zone=All zones" data-field="pending_ratio" data-fmt="pct0">—</b> statewide.</p></div></section>
+        <section class="kp-card" id="ov-mon"><header class="kp-card-h"><h3>Monitoring</h3><button class="kp-btn" data-go="monitoring">Open →</button></header><div class="kp-card-b">
+          <p class="kp-note"><b class="v dash-skeleton" data-source="ar_monitoring" data-where="key=share.lakeD" data-field="value" data-fmt="pct0">—</b> of lake stations in class D; <b class="v dash-skeleton" data-source="ar_monitoring" data-where="key=share.riverC" data-field="value" data-fmt="pct0">—</b> of river stations in class C. <b class="v dash-skeleton" data-source="ar_monitoring" data-where="key=lab.total" data-field="value">—</b> samples analysed.</p></div></section>
+        <section class="kp-card" id="ov-fin"><header class="kp-card-h"><h3>Financials</h3><button class="kp-btn" data-go="financials">Open →</button></header><div class="kp-card-b">
+          <p class="kp-note">Receipts of Rs <b class="v dash-skeleton" data-source="c_fin" data-field="receipts">—</b> lakh against spending of Rs <b class="v dash-skeleton" data-source="c_fin" data-field="expenditure">—</b> lakh; fees are <b class="v dash-skeleton" data-source="c_fin" data-field="fee_share" data-fmt="pct0">—</b> of receipts.</p></div></section>
+        <section class="kp-card" id="ov-leg"><header class="kp-card-h"><h3>Legal</h3><button class="kp-btn" data-go="legal">Open →</button></header><div class="kp-card-b">
+          <p class="kp-note"><b class="v dash-skeleton" data-source="c_legal" data-field="closures_issued">—</b> closure directions issued, <b class="v dash-skeleton" data-source="c_legal" data-field="closures_revoked">—</b> revoked. <b class="v dash-skeleton" data-source="ar_flc" data-where="key=leg.ngt" data-field="pending">—</b> NGT cases pending.</p></div></section>
+        <section class="kp-card" id="ov-cit"><header class="kp-card-h"><h3>Citizen corner</h3><button class="kp-btn" data-go="citizen">Open →</button></header><div class="kp-card-b">
+          <p class="kp-note"><b class="v dash-skeleton" data-source="ar_flc" data-where="key=cit.received" data-field="value">—</b> complaints received; <b class="v dash-skeleton" data-source="c_cit" data-field="resolution_rate" data-fmt="pct0">—</b> of open complaints resolved. <b class="v dash-skeleton" data-source="ar_flc" data-where="key=cit.rti.received" data-field="value">—</b> RTI applications.</p></div></section>
+      </div>
+    </section>
+
+    <section class="kp-page" id="enforcement" role="tabpanel" hidden>
       <div class="kp-tiles">
         <div class="kp-tile"><span class="lbl">Operating regulated entities</span><span class="big v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total.operating" data-field="value">—</span><span class="sub">of <span class="v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total" data-field="value">—</span> covered · <span class="fy-end-short">31 Mar 2026</span></span></div>
         <div class="kp-tile"><span class="lbl">Consent applications received</span><span class="big v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</span><span class="sub">CFE, CFE expansion, CFO · <span class="fy-label">FY 2025-26</span></span></div>
@@ -266,7 +319,7 @@
             </div>
           </div>
         </section>
-        <section class="kp-card" id="card-validity">
+        <section class="kp-card wide" id="card-validity">
           <header class="kp-card-h"><h3>Consent and authorisation validity</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
           <div class="kp-card-b">
             <p class="kp-note">Share of each register by days to or since the valid-upto date. CFO validity: Red 5, Orange 10, Green 15 years; authorisations 5 years.</p>
@@ -319,7 +372,7 @@
             <p class="kp-note">Handled (treated, recycled or safely disposed) ÷ reported generation (from annual returns), by waste type. Below 90% is flagged red; lighter bars include sample figures.</p>
             <div class="kp-chart dash-skeleton" id="ch-ratio" data-source="c_waste"></div>
             <div class="kp-twrap"><table class="kp-table" id="t-waste" data-source="c_waste" data-row-key="waste,fy">
-              <thead><tr><th data-field="waste">Waste type</th><th data-field="unit">Unit</th><th class="num" data-field="projected">Projected</th><th class="num" data-field="reported">Reported</th><th class="num" data-field="handled">Handled</th><th class="num" data-field="handled_ratio">Handled ÷ reported</th></tr></thead><tbody></tbody></table></div>
+              <thead><tr><th data-field="waste">Waste type (unit)</th><th class="num" data-field="projected">Projected</th><th class="num" data-field="reported">Reported</th><th class="num" data-field="handled">Handled</th><th class="num" data-field="handled_ratio">Handled ÷ reported</th></tr></thead><tbody></tbody></table></div>
           </div>
         </section>
         <section class="kp-card" id="card-facilities">
@@ -348,11 +401,25 @@
         <div class="kp-tile"><span class="lbl">Mining-area CAAQMS live <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="s_labs_sites" data-where="id=site.mine.live" data-field="value">—</span><span class="sub">of <span class="v dash-skeleton" data-source="s_labs_sites" data-where="id=site.mine.planned" data-field="value">—</span> planned</span></div>
       </div>
       <div class="kp-grid">
-        <section class="kp-card" id="card-pm10">
-          <header class="kp-card-h"><h3>PM10 annual mean by CAAQMS station</h3><div class="kp-badges"></div></header>
+        <section class="kp-card wide" id="card-hotspots">
+          <header class="kp-card-h"><h3>Pollution hotspots</h3><div class="kp-badges"><span class="kp-badge sample">Air: reported · others: sample</span></div></header>
           <div class="kp-card-b">
-            <p class="kp-note">µg/m³, <span class="fy-label">FY 2025-26</span>. The dashed line is the 60 µg/m³ annual standard (NAAQS 2009).</p>
-            <div class="kp-chart dash-skeleton" id="ch-pm10" data-source="ar_pm10"></div>
+            <div class="kp-ctl">
+              <div class="kp-chips" id="hot-layer" role="group" aria-label="Layer">
+                <button class="kp-chip" data-l="Air quality">Air quality</button>
+                <button class="kp-chip" data-l="Water bodies">Water bodies</button>
+                <button class="kp-chip" data-l="Industrial clusters">Industrial clusters</button>
+                <button class="kp-chip" data-l="Mining areas">Mining areas</button>
+                <button class="kp-chip" data-l="Contaminated sites">Contaminated sites</button>
+                <button class="kp-chip" data-l="All">All layers</button>
+              </div>
+            </div>
+            <p class="kp-note" id="hot-note">Each dot is a monitoring point; bigger and redder means further above its limit.</p>
+            <div class="kp-hot">
+              <div class="kp-chart dash-skeleton" id="map-hot" data-source="c_hotspots geo_districts" style="min-height: 420px"></div>
+              <div class="kp-hot-list" id="hot-list" data-source="c_hotspots"></div>
+            </div>
+            <p class="kp-note">Station locations are approximate. Air quality uses reported annual PM10 against the 60 µg/m³ standard; industrial clusters use CEPI scores (70 or more is critically polluted; Peenya and Jigani reported, others sample); water bodies use BOD against 3 mg/L; mining areas use PM10; contaminated sites are sample points (confirmed in red, probable in amber).</p>
           </div>
         </section>
         <section class="kp-card" id="card-capture">
@@ -416,8 +483,15 @@
       <h2 class="kp-sec">Environmental compensation and penalties</h2>
       <div class="kp-grid">
         <section class="kp-card" id="card-ec">
-          <header class="kp-card-h"><h3>Environmental compensation imposed vs realised</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
-          <div class="kp-card-b"><p class="kp-note">Rs lakh, by waste type. Realisation <b class="v ec-tile dash-skeleton" data-source="c_ec" data-field="realisation" data-fmt="pct">—</b> for the current selection.</p><div class="kp-chart dash-skeleton" id="ch-ec" data-source="c_ec"></div></div>
+          <header class="kp-card-h"><h3>Environmental Compensation fund</h3><div class="kp-badges"><span class="kp-badge">Reported, cumulative</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-lead">The Board keeps compensation in a separate account. None of the <b class="v dash-skeleton" data-source="r_ec_fund" data-where="key=ec.total" data-field="value" data-fmt="crore">—</b> available has been used for any purpose.</p>
+            <div class="kp-tiles" style="margin:0">
+              <div class="kp-tile"><span class="lbl">Collected</span><span class="big v dash-skeleton" data-source="r_ec_fund" data-where="key=ec.collected" data-field="value" data-fmt="crore">—</span><span class="sub">excluding interest</span></div>
+              <div class="kp-tile"><span class="lbl">Interest accrued</span><span class="big v dash-skeleton" data-source="r_ec_fund" data-where="key=ec.interest" data-field="value" data-fmt="crore">—</span></div>
+              <div class="kp-tile"><span class="lbl">Total available</span><span class="big v dash-skeleton" data-source="r_ec_fund" data-where="key=ec.total" data-field="value" data-fmt="crore">—</span></div>
+              <div class="kp-tile flag"><span class="lbl">Utilised</span><span class="big v dash-skeleton" data-source="r_ec_fund" data-where="key=ec.utilised" data-field="value" data-fmt="crore">—</span><span class="sub"><span class="v dash-skeleton" data-source="c_ec_fund" data-field="utilised_share" data-fmt="pct0">—</span> of the fund</span></div>
+            </div>          </div>
         </section>
         <section class="kp-card" id="card-chandapura">
           <header class="kp-card-h"><h3>Chandapura Lake compensation</h3><div class="kp-badges"></div></header>
@@ -525,6 +599,7 @@
     if (k === 'pct0') return Math.round(n * 100) + '%';
     if (k === 'dec1') return IN1.format(n);
     if (k === 'lakh2') return IN2.format(n);
+    if (k === 'crore') return 'Rs ' + IN2.format(n / 1e7) + ' crore';
     if (k === 'text') return String(v);
     return isNaN(n) ? String(v) : IN.format(n);
   };
@@ -542,12 +617,10 @@
   // ---- filter state
   const waste = () => { const w = dash.params().waste; return W.includes(w) ? w : 'All'; };
   window.kpWaste = waste;
-  const chips = document.getElementById('wchips');
-  W.forEach((w) => { const b = document.createElement('button'); b.className = 'kp-chip'; b.textContent = w; b.dataset.w = w; b.addEventListener('click', () => dash.setParams({ waste: w })); chips.appendChild(b); });
-  document.getElementById('freset').addEventListener('click', () => dash.resetParams());
-  const shell = document.getElementById('shell');
-  const coll = document.getElementById('fcollapse');
-  coll.addEventListener('click', () => { const c = shell.classList.toggle('collapsed'); coll.textContent = c ? '»' : '«'; coll.setAttribute('aria-label', c ? 'Expand filters' : 'Collapse filters'); });
+  const WN = { All: 'All waste types', BMW: 'Bio-medical (BMW)', PWM: 'Plastic (PWM)', 'C&D': 'Construction and demolition (C&D)', HZM: 'Hazardous (HZM)', 'E-waste': 'E-waste', SWM: 'Solid waste (SWM)' };
+  const wSel = document.getElementById('waste-select');
+  W.forEach((w) => wSel.appendChild(new Option(WN[w], w)));
+  wSel.addEventListener('change', () => dash.setParams({ waste: wSel.value }));
 
   // ---- tabs
   const tabs = [...document.querySelectorAll('.kp-tab')];
@@ -564,7 +637,6 @@
   window.kpFill = () => {
     const w = waste();
     root.querySelectorAll('.pipe-tile').forEach((el) => { el.dataset.baseWhere = 'waste=' + encodeURIComponent(w) + '&level=total'; });
-    root.querySelectorAll('.ec-tile').forEach((el) => { el.dataset.baseWhere = 'waste=' + encodeURIComponent(w); });
     const fy = fyNow();
     root.querySelectorAll('.v[data-source]').forEach((el) => {
       const d = dash.data(el.dataset.source);
@@ -589,7 +661,7 @@
     root.querySelectorAll('.fy-label').forEach((s) => { s.textContent = 'FY ' + fy; });
     root.querySelectorAll('.fy-end').forEach((s) => { s.textContent = '31 March ' + endYear; });
     root.querySelectorAll('.fy-end-short').forEach((s) => { s.textContent = '31 Mar ' + endYear; });
-    chips.querySelectorAll('.kp-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.w === w)));
+    if (document.activeElement !== wSel) wSel.value = w;
     root.querySelectorAll('.kp-badge.wf').forEach((b) => { b.hidden = w === 'All'; b.textContent = 'Waste type: ' + w; });
   };
 })();
@@ -916,6 +988,41 @@ dash.calc('c_labs', {
     return [...new Set(ar_labs.map((r) => r.fy))].flatMap((fy) => one(ar_labs.filter((r) => r.fy === fy), s_labs_sites.filter((r) => r.fy === fy)).map((r) => Object.assign(r, { fy })));
   },
 });
+dash.calc('c_hotspots', {
+  inputs: ['ar_pm10', 'ar_monitoring', 's_hotspots', 'ref_stations'], title: 'Pollution hotspots',
+  description: 'Map points per year: CAAQMS stations with reported PM10 (limit 60 µg/m³) at approximate locations, plus sample water-body, industrial-cluster, mining and contaminated-site points; reported CEPI scores replace the sample values for Peenya and Jigani; severity = value ÷ limit.',
+  fn: (ar_pm10, ar_monitoring, s_hotspots, ref_stations) => {
+    const out = [];
+    [...new Set(ar_pm10.map((r) => r.fy))].forEach((fy) => {
+      ar_pm10.filter((r) => r.fy === fy).forEach((r) => {
+        const p = ref_stations.find((x) => x.station === r.station);
+        if (p) out.push({ id: 'air.' + r.station, layer: 'Air quality', name: r.station, district: r.city, lat: Number(p.lat), lon: Number(p.lon), value: Number(r.pm10), unit: 'µg/m³ PM10', limit: 60, severity: Number(r.pm10) / 60, reported: true, fy });
+      });
+      s_hotspots.filter((r) => r.fy === fy).forEach((r) => {
+        const m = ar_monitoring.find((x) => x.fy === fy && x.key === r.id);
+        const v = m ? Number(m.value) : Number(r.value);
+        out.push({ id: r.id, layer: r.layer, name: r.name, district: r.district, lat: Number(r.lat), lon: Number(r.lon), value: v, unit: r.unit, limit: Number(r.limit), severity: v / Number(r.limit), reported: !!m, fy });
+      });
+    });
+    return out;
+  },
+});
+dash.calc('c_ov_labs', {
+  inputs: ['c_labs'], title: 'Labs without NABL accreditation',
+  description: 'Per year: number of Board laboratories and how many are not NABL-accredited.',
+  fn: (c_labs) => [...new Set(c_labs.map((r) => r.fy))].map((fy) => {
+    const L = c_labs.filter((r) => r.fy === fy);
+    return { fy, labs: L.length, not_nabl: L.filter((r) => r.nabl !== 'Yes').length };
+  }),
+});
+dash.calc('c_ec_fund', {
+  inputs: ['r_ec_fund'], title: 'Environmental Compensation fund use',
+  description: 'Share of the Environmental Compensation fund (collected plus interest) that has been utilised: utilised ÷ total available.',
+  fn: (r_ec_fund) => {
+    const v = (k) => Number((r_ec_fund.find((r) => r.key === k) || {}).value);
+    return [{ utilised_share: v('ec.total') ? v('ec.utilised') / v('ec.total') : null }];
+  },
+});
 dash.calc('c_pm', {
   inputs: ['ar_pm10'], title: 'Stations above PM10 standard',
   description: 'Count of CAAQMS stations whose annual PM10 mean exceeds the 60 µg/m³ NAAQS annual standard.',
@@ -980,6 +1087,64 @@ dash.calc('c_cit', {
   const visible = (el) => !el.closest('.kp-page').hidden;
   const pct = (v) => fmt(v, 'pct0');
   const wOk = (r, w) => w === 'All' || r.waste === w;
+
+  // Hotspot map: points sized and coloured by value ÷ limit; Bengaluru Urban drawn again as an enlarged inset.
+  const sevColor = (s) => (s > 1 ? 'var(--cds-chart-status-critical)' : s > 0.8 ? 'var(--color-warn)' : 'var(--color-ok)');
+  const sevR = (s, k) => k * (3.5 + 4.5 * Math.min(s, 2.5));
+  const hotVal = (p) => (p.layer === 'Contaminated sites' ? (p.severity > 1 ? 'Confirmed' : 'Probable') : fmt(p.value, 'dec1') + ' ' + p.unit);
+  const hotMap = (el, G, pts) => {
+    el.replaceChildren(); el.classList.remove('dash-skeleton');
+    const W = el.clientWidth; if (!W) return;
+    const geoms = G.map((r) => ({ district: r.district, g: typeof r.geometry === 'string' ? JSON.parse(r.geometry) : r.geometry }));
+    const polys = (g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates);
+    const bounds = (list) => { let a = Infinity, b = -Infinity, c = Infinity, d = -Infinity; list.forEach((x) => polys(x.g).forEach((p) => p[0].forEach(([lon, lat]) => { a = Math.min(a, lon); b = Math.max(b, lon); c = Math.min(c, lat); d = Math.max(d, lat); }))); return { x0: a, x1: b, y0: c, y1: d }; };
+    const all = bounds(geoms), blr = geoms.filter((x) => x.district === 'Bengaluru Urban'), bb = bounds(blr);
+    const inBlr = (p) => p.lon >= bb.x0 && p.lon <= bb.x1 && p.lat >= bb.y0 && p.lat <= bb.y1;
+    const wide = W >= 520, insetW = wide ? Math.min(220, W * 0.36) : Math.min(W, 280), mapW = wide ? W - insetW - 20 : W;
+    const proj = (b, w, hMax) => { const kx = Math.cos(((b.y0 + b.y1) / 2) * Math.PI / 180); const sc = Math.min(w / ((b.x1 - b.x0) * kx), hMax / (b.y1 - b.y0)); const off = (w - (b.x1 - b.x0) * kx * sc) / 2; return { P: ([lon, lat]) => [off + (lon - b.x0) * kx * sc, (b.y1 - lat) * sc], h: (b.y1 - b.y0) * sc }; };
+    const M = proj(all, mapW, 540), I = proj(bb, insetW, insetW);
+    const insetY = wide ? 24 : M.h + 36, H = wide ? Math.max(M.h, I.h + 40) + 4 : M.h + 40 + I.h + 8;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+    const pathOf = (g, P) => { let s = ''; polys(g).forEach((p) => p.forEach((ring) => { s += 'M' + ring.map((c) => P(c).map((n) => n.toFixed(1)).join(',')).join('L') + 'Z'; })); return s; };
+    const tip = document.createElement('div'); tip.className = 'kp-tip'; tip.hidden = true;
+    const show = (ev, p) => {
+      tip.replaceChildren();
+      [[p.name], ['Layer', p.layer], ['District', p.district], ['Value', hotVal(p)], ['Limit', p.layer === 'Contaminated sites' ? '—' : fmt(p.limit) + ' ' + p.unit], ['Times the limit', p.layer === 'Contaminated sites' ? '—' : fmt(p.severity, 'dec1') + '×'], ['Source', p.reported ? 'Reported' : 'Sample']].forEach(([k, v], i) => { const d = document.createElement('div'); if (i === 0) { d.className = 't'; d.textContent = k; } else { d.className = 'r'; const a = document.createElement('span'); a.textContent = k; const b = document.createElement('span'); b.textContent = v; d.append(a, b); } tip.appendChild(d); });
+      tip.hidden = false;
+      const [px, py] = d3.pointer(ev, el);
+      tip.style.left = Math.max(0, Math.min(el.clientWidth - tip.offsetWidth, px + 12)) + 'px';
+      tip.style.top = Math.max(0, py - tip.offsetHeight - 8) + 'px';
+    };
+    const dots = (g, list, P, k) => list.slice().sort((a, b) => a.severity - b.severity).forEach((p) => {
+      const [x, y] = P([p.lon, p.lat]);
+      g.append('circle').attr('cx', x).attr('cy', y).attr('r', sevR(p.severity, k)).attr('fill', sevColor(p.severity)).attr('fill-opacity', 0.78).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.2)
+        .on('mousemove', (ev) => show(ev, p)).on('mouseleave', () => { tip.hidden = true; });
+    });
+    const gm = svg.append('g');
+    geoms.forEach((d) => gm.append('path').attr('d', pathOf(d.g, M.P)).attr('fill', 'var(--gp-head)').attr('stroke', 'var(--gp-line)').attr('stroke-width', 0.8));
+    const [bx0, by0] = M.P([bb.x0, bb.y1]), [bx1, by1] = M.P([bb.x1, bb.y0]);
+    gm.append('rect').attr('x', bx0 - 3).attr('y', by0 - 3).attr('width', bx1 - bx0 + 6).attr('height', by1 - by0 + 6).attr('fill', 'none').attr('stroke', 'var(--color-fg-muted)').attr('stroke-dasharray', '3 3');
+    dots(gm, pts.filter((p) => !inBlr(p)), M.P, 1);
+    const ix = wide ? mapW + 20 : Math.max(0, (W - insetW) / 2);
+    const gi = svg.append('g').attr('transform', `translate(${ix},${insetY})`);
+    gi.append('text').attr('class', 'kp-lab').attr('x', 0).attr('y', -10).attr('font-weight', 600).text('Bengaluru Urban (enlarged)');
+    blr.forEach((d) => gi.append('path').attr('d', pathOf(d.g, I.P)).attr('fill', 'var(--gp-head)').attr('stroke', 'var(--gp-line)').attr('stroke-width', 1));
+    dots(gi, pts.filter(inBlr), I.P, 1.1);
+    el.appendChild(tip);
+  };
+  const hotList = (el, pts) => {
+    el.replaceChildren();
+    const h = document.createElement('h4'); h.textContent = 'Worst ' + Math.min(10, pts.length) + ' by times the limit'; el.appendChild(h);
+    const ol = document.createElement('ol');
+    pts.slice().sort((a, b) => b.severity - a.severity).slice(0, 10).forEach((p) => {
+      const li = document.createElement('li');
+      const d = document.createElement('span'); d.className = 'd'; d.style.background = sevColor(p.severity);
+      const t = document.createElement('span'); t.textContent = p.name; const sm = document.createElement('small'); sm.textContent = p.district + ' · ' + hotVal(p) + (p.reported ? '' : ' · sample'); t.appendChild(sm);
+      const x = document.createElement('span'); x.className = 'x'; x.textContent = p.layer === 'Contaminated sites' ? '' : fmt(p.severity, 'dec1') + '×';
+      li.append(d, t, x); ol.appendChild(li);
+    });
+    el.appendChild(ol);
+  };
 
   // Choropleth of the 12 zones from district boundaries; Bengaluru's split districts go to an inset.
   const zoneMap = (el, ZS, REF, G, m) => {
@@ -1077,8 +1242,65 @@ dash.calc('c_cit', {
     el.appendChild(tip);
   };
 
+  // Overview: one card per concern, each number marked against the row it comes from.
+  const ovAlerts = (el) => {
+    const ids = el.dataset.source.split(' ');
+    if (ids.some((id) => dash.data(id).status === 'loading')) { el.classList.add('dash-skeleton'); return; }
+    el.classList.remove('dash-skeleton'); el.replaceChildren();
+    const fy = window.kpFy();
+    const R = (id) => rowsOf(id) || [];
+    const one = (id, pred) => R(id).find(pred || (() => true));
+    const M = (id, row, keys, field, kind) => {
+      const s = document.createElement('span'); s.dataset.source = id; s.dataset.field = field;
+      const k = Object.assign({}, keys); if (row.fy !== undefined) k.fy = row.fy;
+      const wh = Object.entries(k).map(([a, b]) => a + '=' + encodeURIComponent(b)).join('&'); if (wh) s.dataset.where = wh;
+      s.textContent = fmt(row[field], kind); return s;
+    };
+    const items = [];
+    const add = (sev, area, tab, parts, action) => items.push({ sev, area, tab, parts, action });
+    const P = one('c_pipeline', (r) => r.waste === 'All' && r.level === 'total');
+    const Z = R('c_pipe_zone').filter((r) => r.waste === 'All' && r.level === 'zone' && r.stage === 'All stages').sort((a, b) => b.over_sla - a.over_sla)[0];
+    if (P && Z) add(P.over_share > 0.2 ? 'high' : 'medium', 'Enforcement', 'enforcement', [M('c_pipeline', P, { waste: 'All', level: 'total' }, 'over_sla'), ' open applications (', M('c_pipeline', P, { waste: 'All', level: 'total' }, 'over_share', 'pct0'), ') are past their Sakala time limit. ' + Z.zone + ' zone has the most, with ', M('c_pipe_zone', Z, { waste: 'All', level: 'zone', zone: Z.zone, ro: '', stage: 'All stages' }, 'over_sla'), '.'], 'Clear pending queries and inspections in ' + Z.zone + ' first, and review overdue applications every week.');
+    const V = one('c_validity', (r) => r.module === 'All CFO');
+    if (V && V.expired > 0) add('high', 'Enforcement', 'enforcement', [M('c_validity', V, { module: 'All CFO' }, 'expired'), ' operating units hold an expired consent to operate, and ', M('c_validity', V, { module: 'All CFO' }, 'expiring_90'), ' more expire within 90 days.'], 'Send renewal reminders now and issue show-cause notices to units running on an expired consent.');
+    const B = one('ar_enforcement', (r) => r.key === 'auth.bmw.yettoapply');
+    if (B && B.value > 0) add('high', 'Enforcement', 'enforcement', [M('ar_enforcement', B, { key: 'auth.bmw.yettoapply' }, 'value'), ' health care facilities are operating without a bio-medical waste authorisation.'], 'Run a registration drive with district health officers using the hospital and clinic registers.');
+    const A = R('c_auth').slice().sort((a, b) => a.coverage - b.coverage)[0];
+    if (A && A.coverage < 0.85) add(A.coverage < 0.5 ? 'high' : 'medium', 'Enforcement', 'enforcement', ['Authorisation coverage is lowest for ' + A.waste + ': only ', M('c_auth', A, { waste: A.waste }, 'coverage', 'pct0'), ' of entities that need one hold it.'], 'Map unregistered ' + A.waste + ' generators and facilities and set a coverage target for the year.');
+    const I = R('c_insp').filter((r) => r.zone !== 'All zones').sort((a, b) => b.pending_ratio - a.pending_ratio)[0], IS = one('c_insp', (r) => r.zone === 'All zones');
+    if (I && IS) add(I.pending_ratio > 0.3 ? 'high' : 'medium', 'Enforcement', 'enforcement', [M('c_insp', I, { zone: I.zone }, 'pending_ratio', 'pct0'), ' of due inspections are still pending in ' + I.zone + ' zone, against ', M('c_insp', IS, { zone: 'All zones' }, 'pending_ratio', 'pct0'), ' statewide.'], 'Reassign field officers or schedule joint inspection drives in ' + I.zone + '.');
+    const WS = R('c_waste').filter((r) => r.handled_ratio != null).sort((a, b) => a.handled_ratio - b.handled_ratio)[0];
+    if (WS && WS.handled_ratio < 0.9) add(WS.handled_ratio < 0.6 ? 'high' : 'medium', 'Monitoring', 'monitoring', ['Only ', M('c_waste', WS, { waste: WS.waste }, 'handled_ratio', 'pct0'), ' of reported ' + WS.waste + ' waste is treated, recycled or safely disposed of.'], 'Audit ' + WS.waste + ' processing capacity and follow up with facilities that under-report.');
+    const PM = one('c_pm'), H = R('c_hotspots').filter((r) => r.layer === 'Air quality').sort((a, b) => b.severity - a.severity)[0];
+    if (PM && H && PM.over_standard > 0) add(PM.over_standard > PM.stations / 2 ? 'high' : 'medium', 'Monitoring', 'monitoring', [M('c_pm', PM, {}, 'over_standard'), ' of ', M('c_pm', PM, {}, 'stations'), ' continuous air stations exceed the PM10 standard; the worst is ' + H.name + ' at ', M('c_hotspots', H, { id: H.id }, 'value', 'dec1'), ' µg/m³.'], 'Tighten dust, construction and road controls around ' + H.name + ' and review the city clean air plan.');
+    const L = one('ar_monitoring', (r) => r.key === 'share.lakeD');
+    if (L && L.value > 0.3) add(L.value > 0.5 ? 'high' : 'medium', 'Monitoring', 'monitoring', [M('ar_monitoring', L, { key: 'share.lakeD' }, 'value', 'pct0'), ' of lake monitoring stations are in water quality class D, fit only for wildlife and fisheries.'], 'Enforce STP compliance for apartments and stop sewage entering storm drains in lake catchments.');
+    const EC = one('r_ec_fund', (r) => r.key === 'ec.total'), EU = one('r_ec_fund', (r) => r.key === 'ec.utilised');
+    if (EC && EU && EU.value === 0) add('high', 'Financials', 'financials', [M('r_ec_fund', EC, { key: 'ec.total' }, 'value', 'crore'), ' of environmental compensation is sitting unused (utilised: ', M('r_ec_fund', EU, { key: 'ec.utilised' }, 'value', 'crore'), ').'], 'Prepare a utilisation plan for lake and site restoration, the purpose the compensation is collected for.');
+    const LG = one('c_legal'), N = one('ar_flc', (r) => r.key === 'leg.ngt');
+    if (LG && N) add('medium', 'Legal', 'legal', [M('c_legal', LG, {}, 'cases_pending'), ' court cases are pending, including ', M('ar_flc', N, { key: 'leg.ngt' }, 'pending'), ' before the National Green Tribunal.'], 'Track NGT compliance dates centrally and review the pending list with the legal cell every month.');
+    const CZ = R('c_insp').filter((r) => r.zone !== 'All zones').sort((a, b) => a.complaint_ratio - b.complaint_ratio)[0];
+    if (CZ && CZ.complaint_ratio < 0.97) add('medium', 'Citizen corner', 'citizen', [CZ.zone + ' zone resolved ', M('c_insp', CZ, { zone: CZ.zone }, 'complaint_ratio', 'pct0'), ' of the complaints it received, the lowest of all zones.'], 'Review open complaints in ' + CZ.zone + ' and set a resolution deadline for each.');
+    const LB = one('c_ov_labs');
+    if (LB && LB.not_nabl > 0) add('medium', 'Monitoring', 'monitoring', [M('c_ov_labs', LB, {}, 'not_nabl'), ' of ', M('c_ov_labs', LB, {}, 'labs'), ' Board laboratories are not NABL-accredited.'], 'Plan accreditation for the remaining labs, starting with the busiest.');
+    const sorted = items.sort((a, b) => (a.sev === b.sev ? 0 : a.sev === 'high' ? -1 : 1));
+    const shown = window.kpOvAll ? sorted : sorted.slice(0, 5);
+    shown.forEach((it) => {
+      const card = document.createElement('article'); card.className = 'kp-alert sev-' + it.sev;
+      const p = document.createElement('p'); p.className = 'what'; it.parts.forEach((x) => p.append(typeof x === 'string' ? document.createTextNode(x) : x));
+      const a = document.createElement('p'); a.className = 'act'; a.append(document.createTextNode(it.action + ' '));
+      const go = document.createElement('button'); go.className = 'kp-go'; go.textContent = it.area + ' →'; go.addEventListener('click', () => { window.kpShow(it.tab); document.getElementById('kp').scrollIntoView(); });
+      a.appendChild(go);
+      card.append(p, a); el.appendChild(card);
+    });
+    const more = $('ov-more');
+    more.hidden = sorted.length <= 5;
+    more.textContent = window.kpOvAll ? 'Show top 5 only' : 'Show all ' + sorted.length + ' concerns';
+  };
+
   const draw = () => {
     const w = window.kpWaste();
+    if (visible($('ov-alerts'))) ovAlerts($('ov-alerts'));
 
     // Enforcement
     if (visible($('ch-category')) && st($('ch-category'), 'ar_enforcement')) {
@@ -1118,7 +1340,7 @@ dash.calc('c_cit', {
     if (visible($('ch-validity')) && st($('ch-validity'), 'c_validity')) {
       const V = rowsOf('c_validity').filter((r) => r.module !== 'All CFO' && (w === 'All' || r.waste === w));
       const B = [['valid', 'Valid, over 90 days', 'var(--color-ok)'], ['exp30', 'Expiring ≤30 days', 'var(--color-warn)'], ['exp90', 'Expiring 31–90 days', C[3]], ['ex1', 'Expired <1 yr', C[5]], ['ex3', 'Expired 1–3 yrs', 'var(--cds-chart-status-critical)'], ['exmore', 'Expired >3 yrs', 'var(--color-bad)'], ['nodate', 'No date recorded', 'var(--cds-chart-muted)']];
-      bar($('ch-validity'), V, { label: (r) => r.module, stacked: true, max: 1, tickFmt: pct, endFmt: (r) => fmt(r.total), fmt: pct, series: B.map(([k, n, c]) => ({ f: 'share_' + k, name: n, color: c })), tipFmt: (v, r, s) => fmt(r[s.f.replace('share_', '')]) + ' · ' + pct(v) });
+      bar($('ch-validity'), V, { label: (r) => r.module, stacked: true, max: 1, barH: 28, tickFmt: pct, endFmt: (r) => fmt(r.total), fmt: pct, series: B.map(([k, n, c]) => ({ f: 'share_' + k, name: n, color: c })), tipFmt: (v, r, s) => fmt(r[s.f.replace('share_', '')]) + ' · ' + pct(v) });
     }
 
     // zone order and RO lists from the official office mapping
@@ -1167,15 +1389,20 @@ dash.calc('c_cit', {
     if (visible($('ch-ratio')) && st($('ch-ratio'), 'c_waste')) {
       bar($('ch-ratio'), WR.filter((r) => wOk(r, w)).slice().sort((a, b) => a.handled_ratio - b.handled_ratio), { label: (r) => r.waste, max: 1, fmt: (v) => fmt(v, 'pct0'), tickFmt: pct, ref: { value: 0.9, label: 'Target 90%' }, barH: 26, series: [{ f: 'handled_ratio', name: 'Handled ÷ reported', color: C[0], sample: (r) => r.reported_is_sample || r.handled_is_sample, colorFn: (r) => (r.handled_ratio < 0.9 ? 'var(--cds-chart-status-critical)' : C[0]) }], tipExtra: (r) => [['Reported', fmt(r.reported) + ' ' + r.unit], ['Handled', fmt(r.handled) + ' ' + r.unit], ['Source', r.reported_is_sample || r.handled_is_sample ? 'Partly sample' : 'Reported']] });
     }
-    if (WR) tab($('t-waste'), WR.filter((r) => wOk(r, w)), [{ f: 'waste' }, { f: 'unit' }, { f: 'projected', num: 1, fmt: (v) => fmt(v) }, { f: 'reported', num: 1, fmt: (v) => fmt(v) }, { f: 'handled', num: 1, fmt: (v) => fmt(v) }, { f: 'handled_ratio', num: 1, fmt: (v) => fmt(v, 'pct0') }]);
+    if (WR) tab($('t-waste'), WR.filter((r) => wOk(r, w)), [{ f: 'waste', fmt: (v, r) => v + ' (' + r.unit + ')' }, { f: 'projected', num: 1, fmt: (v) => fmt(v) }, { f: 'reported', num: 1, fmt: (v) => fmt(v) }, { f: 'handled', num: 1, fmt: (v) => fmt(v) }, { f: 'handled_ratio', num: 1, fmt: (v) => fmt(v, 'pct0') }]);
     const M = rowsOf('ar_monitoring');
     if (M) tab($('t-fac'), M.filter((r) => r.metric === 'Facilities' && wOk(r, w)), [{ f: 'waste' }, { f: 'item' }, { f: 'value', num: 1, fmt: (v) => fmt(v) }]);
     if (visible($('ch-hzm'))) {
       $('card-hzm').hidden = !(w === 'All' || w === 'HZM');
       if (!$('card-hzm').hidden && st($('ch-hzm'), 'ar_monitoring')) bar($('ch-hzm'), M.filter((r) => r.metric === 'Hazardous waste stream'), { label: (r) => r.item, series: [{ f: 'value', name: 'MT/year', color: C[2] }] });
     }
-    if (visible($('ch-pm10')) && st($('ch-pm10'), 'ar_pm10')) {
-      bar($('ch-pm10'), rowsOf('ar_pm10').slice().sort((a, b) => b.pm10 - a.pm10), { label: (r) => r.station, fmt: (v) => fmt(v, 'dec1'), series: [{ f: 'pm10', name: 'PM10 µg/m³', color: C[0], colorFn: (r) => (+r.pm10 > 60 ? 'var(--cds-chart-status-critical)' : C[0]) }], ref: { value: 60, label: 'Standard 60' }, barH: 18, tipExtra: (r) => [['City', r.city]] });
+    const hl = window.kpHotLayer;
+    document.querySelectorAll('#hot-layer .kp-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.l === hl)));
+    const mh = $('map-hot');
+    if (visible(mh) && st(mh, 'c_hotspots') && st(mh, 'geo_districts')) {
+      const pts = rowsOf('c_hotspots').filter((r) => hl === 'All' || r.layer === hl);
+      hotMap(mh, rowsOf('geo_districts'), pts);
+      hotList($('hot-list'), pts);
     }
     if (visible($('ch-capture')) && st($('ch-capture'), 's_labs_sites')) {
       bar($('ch-capture'), rowsOf('s_labs_sites').filter((r) => r.kind === 'station').sort((a, b) => a.capture - b.capture), { label: (r) => r.name, max: 1, fmt: pct, tickFmt: pct, series: [{ f: 'capture', name: 'Data capture', color: C[0], sample: () => true, colorFn: (r) => (+r.capture < 0.75 ? 'var(--cds-chart-status-critical)' : C[0]) }], ref: { value: 0.75, label: '75%' }, barH: 18 });
@@ -1190,7 +1417,6 @@ dash.calc('c_cit', {
     const F = rowsOf('ar_flc');
     if (visible($('ch-receipts')) && st($('ch-receipts'), 'ar_flc')) bar($('ch-receipts'), F.filter((r) => r.metric === 'Receipts'), { label: (r) => r.item, fmt: (v) => fmt(v), series: [{ f: 'value', name: 'Rs lakh', color: C[0] }] });
     if (visible($('ch-expend')) && st($('ch-expend'), 'ar_flc')) bar($('ch-expend'), F.filter((r) => r.metric === 'Expenditure'), { label: (r) => r.item, series: [{ f: 'value', name: 'Rs lakh', color: C[3] }] });
-    if (visible($('ch-ec')) && st($('ch-ec'), 'c_ec')) bar($('ch-ec'), rowsOf('c_ec').filter((r) => r.waste !== 'All' && wOk(r, w)), { label: (r) => r.waste, series: [{ f: 'imposed', name: 'Imposed', color: 'var(--cds-chart-muted)', sample: () => true }, { f: 'realised', name: 'Realised', color: C[0], sample: () => true }], tipExtra: (r) => [['Realisation', fmt(r.realisation, 'pct')]] });
 
     // Legal
     if (visible($('ch-cases')) && st($('ch-cases'), 'ar_flc')) bar($('ch-cases'), F.filter((r) => r.metric === 'Court cases'), { label: (r) => r.item, stacked: true, series: [{ f: 'disposed', name: 'Disposed', color: 'var(--cds-chart-muted)' }, { f: 'pending', name: 'Pending', color: C[0] }] });
@@ -1218,6 +1444,10 @@ dash.calc('c_cit', {
   window.kpDraw = draw;
   window.kpPipeMetric = 'open';
   window.kpZoneMetric = 'pending_ratio';
+  window.kpHotLayer = 'Air quality';
+  window.kpOvAll = false;
+  document.getElementById('ov-more').addEventListener('click', () => { window.kpOvAll = !window.kpOvAll; draw(); });
+  document.querySelectorAll('#hot-layer .kp-chip').forEach((b) => b.addEventListener('click', () => { window.kpHotLayer = b.dataset.l; draw(); }));
   document.querySelectorAll('#zone-metric .kp-chip').forEach((b) => b.addEventListener('click', () => { window.kpZoneMetric = b.dataset.m; draw(); }));
   window.kpExpanded = new Set();
   document.querySelectorAll('#pipe-metric .kp-chip').forEach((b) => b.addEventListener('click', () => { window.kpPipeMetric = b.dataset.m; draw(); }));
@@ -1227,7 +1457,8 @@ dash.calc('c_cit', {
   dash.onData(() => { window.kpFill(); draw(); });
 
   const named = location.hash.slice(1);
-  if (['enforcement', 'monitoring', 'financials', 'legal', 'citizen'].includes(named)) window.kpShow(named);
+  if (['overview', 'enforcement', 'monitoring', 'financials', 'legal', 'citizen'].includes(named)) window.kpShow(named);
+  document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { window.kpShow(b.dataset.go); document.getElementById('kp').scrollIntoView(); }));
 })();
 </script>
 
