@@ -156,6 +156,21 @@
 #kp .kp-sec { border-left: 4px solid var(--gp-saffron); padding-left: 10px; font-weight: 600; }
 #kp .kp-chip, #kp .kp-badge, #kp .kp-btn { border-radius: 3px; }
 #kp .kp-table th { background: var(--gp-head); }
+.kp-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: var(--cds-gap-lg); }
+@media (max-width: 900px) { .kp-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kp-fstep::after { display: none; } }
+@media (max-width: 480px) { .kp-flow { grid-template-columns: minmax(0, 1fr); } }
+.kp-fstep { appearance: none; font: inherit; text-align: left; cursor: pointer; position: relative; display: flex; flex-direction: column; gap: 4px; background: var(--color-panel); color: var(--color-fg); border: 1px solid var(--color-border-line); border-top: 4px solid var(--kp-accent); border-radius: 2px; padding: 12px 14px; min-width: 0; }
+.kp-fstep:hover { border-color: var(--kp-accent); }
+.kp-fstep:focus-visible { outline: 2px solid var(--kp-accent); outline-offset: 2px; }
+.kp-fstep::after { content: '›'; position: absolute; right: -15px; top: 50%; transform: translateY(-50%); font-size: 22px; color: var(--color-fg-muted); }
+.kp-fstep:last-child::after { display: none; }
+.kp-fstep.s4 { border-top-color: var(--color-bad); }
+.kp-fstep .n { font-size: 11px; font-weight: 600; color: var(--color-fg-muted); text-transform: uppercase; letter-spacing: .05em; }
+.kp-fstep .n::before { content: 'Stage '; }
+.kp-fstep .t { font-weight: 600; font-size: 14px; }
+.kp-fstep .big { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.kp-fstep .sub { font-size: 12px; color: var(--color-fg-muted); }
+.kp-stepn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--kp-accent); color: var(--kp-on-accent, #fff); font-size: 12px; font-weight: 700; margin-right: 6px; flex: none; }
 .kp-alerts { display: flex; flex-direction: column; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 2px; min-height: 120px; margin-bottom: var(--cds-gap-sm); }
 .kp-alert { border-left: 4px solid var(--color-warn); border-bottom: 1px solid var(--color-border-line); padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .kp-alert:last-child { border-bottom: 0; }
@@ -243,33 +258,34 @@
     </section>
 
     <section class="kp-page" id="enforcement" role="tabpanel" hidden>
-      <div class="kp-tiles">
-        <div class="kp-tile"><span class="lbl">Operating regulated entities</span><span class="big v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total.operating" data-field="value">—</span><span class="sub">of <span class="v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total" data-field="value">—</span> covered · <span class="fy-end-short">31 Mar 2026</span></span></div>
-        <div class="kp-tile"><span class="lbl">Consent applications received</span><span class="big v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</span><span class="sub">CFE, CFE expansion, CFO · <span class="fy-label">FY 2025-26</span></span></div>
-        <div class="kp-tile"><span class="lbl">Consent disposal rate</span><span class="big v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</span><span class="sub">Issued + refused ÷ received</span></div>
-        <div class="kp-tile flag"><span class="lbl">Units without valid CFO <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expired">—</span><span class="sub">Operating Red/Orange/Green, consent expired</span></div>
-        <div class="kp-tile"><span class="lbl">CFO expiring in 90 days <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expiring_90">—</span><span class="sub">Renewal reminders due</span></div>
-        <div class="kp-tile flag"><span class="lbl">BMW occupiers yet to apply</span><span class="big v dash-skeleton" data-source="ar_enforcement" data-where="key=auth.bmw.yettoapply" data-field="value">—</span><span class="sub">Operating without authorisation</span></div>
+      <div class="kp-flow" id="enf-flow">
+        <button class="kp-fstep s1" data-jump="stage-1"><span class="n">1</span><span class="t">Outside the net</span><span class="big v dash-skeleton" data-source="c_outside" data-field="without_total">—</span><span class="sub">units operating without authorisation</span></button>
+        <button class="kp-fstep s2" data-jump="stage-2"><span class="n">2</span><span class="t">Applying</span><span class="big v pipe-tile dash-skeleton" data-source="c_pipeline" data-field="open">—</span><span class="sub">open applications · <span class="v pipe-tile dash-skeleton" data-source="c_pipeline" data-field="over_sla">—</span> past Sakala limit</span></button>
+        <button class="kp-fstep s3" data-jump="stage-3"><span class="n">3</span><span class="t">In the net: filings due</span><span class="big v dash-skeleton" data-source="c_returns" data-field="avg_filed" data-fmt="pct0">—</span><span class="sub">of annual returns filed on average</span></button>
+        <button class="kp-fstep s4" data-jump="stage-4"><span class="n">4</span><span class="t">Consent expiring</span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expiring_90">—</span><span class="sub">CFO expiring in 90 days · <span class="v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expired">—</span> already expired</span></button>
       </div>
 
-      <h2 class="kp-sec">Consent <small>Water Act 1974 · Air Act 1981</small></h2>
+      <h2 class="kp-sec" id="stage-1"><span class="kp-stepn">1</span>Outside the net <small>Units that should hold a consent, authorisation or registration but do not</small></h2>
       <div class="kp-grid">
-        <section class="kp-card" id="card-consent">
-          <header class="kp-card-h"><h3>Consent applications, <span class="fy-label">FY 2025-26</span></h3><div class="kp-badges"></div></header>
+        <section class="kp-card wide" id="card-auth">
+          <header class="kp-card-h"><h3>Authorisation coverage by waste type</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Partly sample</span></div></header>
           <div class="kp-card-b">
-            <p class="kp-lead" id="takeaway">In <span class="fy-label">FY 2025-26</span> the Board received <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</b> consent applications and decided <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</b> of them within the year; <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="pending">—</b> were still under process at year end.</p>
-            <p class="kp-note">Disposal rate is applications issued or refused as a share of those received in the year.</p>
-            <div class="kp-twrap"><table class="kp-table" id="t-consent" data-source="c_consent" data-row-key="type,fy">
-              <thead><tr><th data-field="type">Type</th><th class="num" data-field="received">Received</th><th class="num" data-field="issued">Issued</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="pending">Under process</th><th class="num" data-field="disposal_rate">Disposal rate</th></tr></thead><tbody></tbody></table></div>
+            <p class="kp-note">Coverage is entities holding a valid authorisation or registration as a share of all entities that need one (authorised + pending + operating without authorisation). Bars under 85% are flagged. Lighter bars include sample figures; BMW is fully reported for <span class="fy-label">FY 2025-26</span>.</p>
+            <div class="kp-mini">
+              <div><h4>Coverage</h4><div class="kp-chart dash-skeleton" id="ch-auth" data-source="c_auth"></div></div>
+              <div style="min-width:0">
+                <h4>Breakdown</h4>
+                <div class="kp-twrap"><table class="kp-table" id="t-auth" data-source="c_auth" data-row-key="waste,fy">
+                  <thead><tr><th data-field="waste">Waste type</th><th class="num" data-field="required">Need authorisation</th><th class="num" data-field="authorised">Authorised</th><th class="num" data-field="pending">Pending</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="without">Operating without</th><th class="num" data-field="coverage">Coverage</th></tr></thead><tbody></tbody></table></div>
+                <p class="kp-note">Underlined figures are sample data.</p>
+              </div>
+            </div>
           </div>
         </section>
-        <section class="kp-card" id="card-category">
-          <header class="kp-card-h"><h3>Industries by category</h3><div class="kp-badges"></div></header>
-          <div class="kp-card-b">
-            <p class="kp-note">Units on the register as on <span class="fy-end">31 March 2026</span>, by CPCB colour category and status. White units need no consent.</p>
-            <div class="kp-chart dash-skeleton" id="ch-category" data-source="ar_enforcement"></div>
-          </div>
-        </section>
+      </div>
+
+      <h2 class="kp-sec" id="stage-2"><span class="kp-stepn">2</span>Applying <small>Applications received but not yet decided, by processing stage including inspection pending</small></h2>
+      <div class="kp-grid">
         <section class="kp-card wide" id="card-pipeline">
           <header class="kp-card-h"><h3>Open applications by processing stage</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
           <div class="kp-card-b">
@@ -300,36 +316,31 @@
             <div class="kp-heat dash-skeleton" id="hm-pipe" data-source="c_pipe_zone ref_offices"></div>
           </div>
         </section>
-      </div>
-
-      <h2 class="kp-sec">Authorisation <small>BMW · HWM · PWM · E-waste · SWM · C&amp;D rules</small></h2>
-      <div class="kp-grid">
-        <section class="kp-card wide" id="card-auth">
-          <header class="kp-card-h"><h3>Authorisation coverage by waste type</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Partly sample</span></div></header>
+        <section class="kp-card" id="card-consent">
+          <header class="kp-card-h"><h3>Consent applications, <span class="fy-label">FY 2025-26</span></h3><div class="kp-badges"></div></header>
           <div class="kp-card-b">
-            <p class="kp-note">Coverage is entities holding a valid authorisation or registration as a share of all entities that need one (authorised + pending + operating without authorisation). Bars under 85% are flagged. Lighter bars include sample figures; BMW is fully reported for <span class="fy-label">FY 2025-26</span>.</p>
-            <div class="kp-mini">
-              <div><h4>Coverage</h4><div class="kp-chart dash-skeleton" id="ch-auth" data-source="c_auth"></div></div>
-              <div style="min-width:0">
-                <h4>Breakdown</h4>
-                <div class="kp-twrap"><table class="kp-table" id="t-auth" data-source="c_auth" data-row-key="waste,fy">
-                  <thead><tr><th data-field="waste">Waste type</th><th class="num" data-field="required">Need authorisation</th><th class="num" data-field="authorised">Authorised</th><th class="num" data-field="pending">Pending</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="without">Operating without</th><th class="num" data-field="coverage">Coverage</th></tr></thead><tbody></tbody></table></div>
-                <p class="kp-note">Underlined figures are sample data.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section class="kp-card wide" id="card-validity">
-          <header class="kp-card-h"><h3>Consent and authorisation validity</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
-          <div class="kp-card-b">
-            <p class="kp-note">Share of each register by days to or since the valid-upto date. CFO validity: Red 5, Orange 10, Green 15 years; authorisations 5 years.</p>
-            <div class="kp-chart dash-skeleton" id="ch-validity" data-source="c_validity"></div>
+            <p class="kp-lead" id="takeaway">In <span class="fy-label">FY 2025-26</span> the Board received <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="received">—</b> consent applications and decided <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="disposal_rate" data-fmt="pct">—</b> of them within the year; <b class="v dash-skeleton" data-source="c_consent" data-where="type=All" data-field="pending">—</b> were still under process at year end.</p>
+            <p class="kp-note">Disposal rate is applications issued or refused as a share of those received in the year.</p>
+            <div class="kp-twrap"><table class="kp-table" id="t-consent" data-source="c_consent" data-row-key="type,fy">
+              <thead><tr><th data-field="type">Type</th><th class="num" data-field="received">Received</th><th class="num" data-field="issued">Issued</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="pending">Under process</th><th class="num" data-field="disposal_rate">Disposal rate</th></tr></thead><tbody></tbody></table></div>
           </div>
         </section>
       </div>
 
-      <h2 class="kp-sec">Regulated entities <small>Inspections, workload and register quality</small></h2>
+      <h2 class="kp-sec" id="stage-3"><span class="kp-stepn">3</span>In the net: filings and inspections due <small>Units holding valid permission that owe annual returns or a periodic inspection</small></h2>
+      <div class="kp-tiles">
+        <div class="kp-tile"><span class="lbl">Operating regulated entities</span><span class="big v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total.operating" data-field="value">—</span><span class="sub">of <span class="v dash-skeleton" data-source="ar_enforcement" data-where="key=ent.total" data-field="value">—</span> covered · <span class="fy-end-short">31 Mar 2026</span></span></div>
+        <div class="kp-tile flag"><span class="lbl">Lowest return filing <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_returns" data-field="lowest_value" data-fmt="pct0">—</span><span class="sub v dash-skeleton" data-source="c_returns" data-field="lowest_name" data-fmt="text">—</span></div>
+        <div class="kp-tile"><span class="lbl">Inspections due ratio <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_insp" data-where="zone=All zones" data-field="pending_ratio" data-fmt="pct0">—</span><span class="sub">of due inspections not yet done</span></div>
+      </div>
       <div class="kp-grid">
+        <section class="kp-card" id="card-dq">
+          <header class="kp-card-h"><h3>Annual returns and register data</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Completeness of key register fields and statutory annual returns received against those due. The tick marks the target.</p>
+            <div class="kp-chart dash-skeleton" id="ch-dq" data-source="s_quality"></div>
+          </div>
+        </section>
         <section class="kp-card wide" id="card-zones">
           <header class="kp-card-h"><h3>Zones at a glance</h3><div class="kp-badges"><span class="kp-badge sample">Sample</span></div></header>
           <div class="kp-card-b">
@@ -352,16 +363,32 @@
             <div class="kp-chart dash-skeleton" id="ch-insp-cat" data-source="s_inspections"></div>
           </div>
         </section>
-        <section class="kp-card" id="card-dq">
-          <header class="kp-card-h"><h3>Register data quality and returns</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
+        <section class="kp-card" id="card-category">
+          <header class="kp-card-h"><h3>Industries by category</h3><div class="kp-badges"></div></header>
           <div class="kp-card-b">
-            <p class="kp-note">Completeness of key register fields and statutory annual returns received against those due. The tick marks the target.</p>
-            <div class="kp-chart dash-skeleton" id="ch-dq" data-source="s_quality"></div>
+            <p class="kp-note">Units on the register as on <span class="fy-end">31 March 2026</span>, by CPCB colour category and status. White units need no consent.</p>
+            <div class="kp-chart dash-skeleton" id="ch-category" data-source="ar_enforcement"></div>
+          </div>
+        </section>
+      </div>
+
+      <h2 class="kp-sec" id="stage-4"><span class="kp-stepn">4</span>Consent expiring or expired <small>Renewals due soon, and units whose consent or authorisation has lapsed</small></h2>
+      <div class="kp-tiles">
+        <div class="kp-tile"><span class="lbl">CFO expiring within 30 days <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="exp30">—</span><span class="sub">send renewal reminders now</span></div>
+        <div class="kp-tile"><span class="lbl">CFO expiring in 31–90 days <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="exp90">—</span><span class="sub">renewal application due</span></div>
+        <div class="kp-tile flag"><span class="lbl">Operating on expired CFO <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expired">—</span><span class="sub">show-cause or closure action</span></div>
+        <div class="kp-tile"><span class="lbl">No validity date recorded <span class="kp-badge sample">Sample</span></span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="nodate">—</span><span class="sub">fix in the register</span></div>
+      </div>
+      <div class="kp-grid">
+        <section class="kp-card wide" id="card-validity">
+          <header class="kp-card-h"><h3>Consent and authorisation validity</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Sample</span></div></header>
+          <div class="kp-card-b">
+            <p class="kp-note">Share of each register by days to or since the valid-upto date. CFO validity: Red 5, Orange 10, Green 15 years; authorisations 5 years.</p>
+            <div class="kp-chart dash-skeleton" id="ch-validity" data-source="c_validity"></div>
           </div>
         </section>
       </div>
     </section>
-
     <!-- MONITORING -->
     <section class="kp-page" id="monitoring" role="tabpanel" hidden>
       <h2 class="kp-sec">Waste handling <small>Projected vs reported generation vs handled</small></h2>
@@ -1007,6 +1034,20 @@ dash.calc('c_hotspots', {
     return out;
   },
 });
+dash.calc('c_outside', {
+  inputs: ['c_auth'], title: 'Units outside the net',
+  description: 'Per year: units operating without authorisation, summed across waste types (BMW reported, others sample).',
+  fn: (c_auth) => [...new Set(c_auth.map((r) => r.fy))].map((fy) => ({ fy, without_total: c_auth.filter((r) => r.fy === fy).reduce((a, r) => a + Number(r.without), 0) })),
+});
+dash.calc('c_returns', {
+  inputs: ['s_quality'], title: 'Annual return filing',
+  description: 'Per year: average share of annual returns filed across waste types, and the return with the lowest filing rate.',
+  fn: (s_quality) => [...new Set(s_quality.map((r) => r.fy))].map((fy) => {
+    const R = s_quality.filter((r) => r.fy === fy && r.group === 'Annual returns');
+    const low = R.slice().sort((a, b) => a.value - b.value)[0] || {};
+    return { fy, avg_filed: R.length ? R.reduce((a, r) => a + Number(r.value), 0) / R.length : null, lowest_name: low.indicator, lowest_value: Number(low.value) };
+  }),
+});
 dash.calc('c_ov_labs', {
   inputs: ['c_labs'], title: 'Labs without NABL accreditation',
   description: 'Per year: number of Board laboratories and how many are not NABL-accredited.',
@@ -1458,6 +1499,7 @@ dash.calc('c_cit', {
 
   const named = location.hash.slice(1);
   if (['overview', 'enforcement', 'monitoring', 'financials', 'legal', 'citizen'].includes(named)) window.kpShow(named);
+  document.querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.jump).scrollIntoView({ behavior: 'smooth', block: 'start' })));
   document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { window.kpShow(b.dataset.go); document.getElementById('kp').scrollIntoView(); }));
 })();
 </script>
