@@ -171,6 +171,13 @@
 .kp-fstep .big { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.15; }
 .kp-fstep .sub { font-size: 12px; color: var(--color-fg-muted); }
 .kp-stepn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--kp-accent); color: var(--kp-on-accent, #fff); font-size: 12px; font-weight: 700; margin-right: 6px; flex: none; }
+.kp-sec { position: relative; padding-right: 32px; }
+.kp-info-wrap { position: static; display: contents; }
+.kp-info-wrap .kp-info { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+.kp-info { appearance: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--color-fg-muted); background: none; color: var(--color-fg-muted); font: italic 700 11px Georgia, 'Times New Roman', serif; line-height: 1; padding: 0; cursor: help; display: inline-flex; align-items: center; justify-content: center; }
+.kp-info:hover, .kp-info:focus-visible { border-color: var(--kp-accent); color: var(--kp-accent); outline: none; }
+.kp-info-pop { display: none; position: absolute; right: 0; top: calc(100% + 6px); width: min(28rem, 100%); box-sizing: border-box; z-index: 30; background: var(--cds-surface-popover); color: var(--color-fg); border: 1px solid var(--cds-border); border-left: 3px solid var(--kp-accent); border-radius: 2px; box-shadow: var(--cds-shadow-popover); padding: 10px 12px; font-size: 13px; font-weight: 400; line-height: 1.5; text-transform: none; letter-spacing: 0; white-space: normal; }
+.kp-info:hover + .kp-info-pop, .kp-info-wrap.open .kp-info-pop { display: block; }
 .kp-alerts { display: flex; flex-direction: column; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 2px; min-height: 120px; margin-bottom: var(--cds-gap-sm); }
 .kp-alert { border-left: 4px solid var(--color-warn); border-bottom: 1px solid var(--color-border-line); padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .kp-alert:last-child { border-bottom: 0; }
@@ -259,7 +266,7 @@
 
     <section class="kp-page" id="enforcement" role="tabpanel" hidden>
       <div class="kp-flow" id="enf-flow">
-        <button class="kp-fstep s1" data-jump="stage-1"><span class="n">1</span><span class="t">Outside the net</span><span class="big v dash-skeleton" data-source="c_outside" data-field="without_total">—</span><span class="sub">units operating without authorisation</span></button>
+        <button class="kp-fstep s1" data-jump="stage-1"><span class="n">1</span><span class="t">Outside the net</span><span class="big v dash-skeleton" data-source="c_outside" data-field="without_total">—</span><span class="sub">units operating without consent or authorisation</span></button>
         <button class="kp-fstep s2" data-jump="stage-2"><span class="n">2</span><span class="t">Applying</span><span class="big v pipe-tile dash-skeleton" data-source="c_pipeline" data-field="open">—</span><span class="sub">open applications · <span class="v pipe-tile dash-skeleton" data-source="c_pipeline" data-field="over_sla">—</span> past Sakala limit</span></button>
         <button class="kp-fstep s3" data-jump="stage-3"><span class="n">3</span><span class="t">In the net: filings due</span><span class="big v dash-skeleton" data-source="c_returns" data-field="avg_filed" data-fmt="pct0">—</span><span class="sub">of annual returns filed on average</span></button>
         <button class="kp-fstep s4" data-jump="stage-4"><span class="n">4</span><span class="t">Consent expiring</span><span class="big v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expiring_90">—</span><span class="sub">CFO expiring in 90 days · <span class="v dash-skeleton" data-source="c_validity" data-where="module=All CFO" data-field="expired">—</span> already expired</span></button>
@@ -268,15 +275,15 @@
       <h2 class="kp-sec" id="stage-1"><span class="kp-stepn">1</span>Outside the net <small>Units that should hold a consent, authorisation or registration but do not</small></h2>
       <div class="kp-grid">
         <section class="kp-card wide" id="card-auth">
-          <header class="kp-card-h"><h3>Authorisation coverage by waste type</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Partly sample</span></div></header>
+          <header class="kp-card-h"><h3>Consent and authorisation coverage</h3><div class="kp-badges"><span class="kp-badge wf" hidden></span><span class="kp-badge sample">Partly sample</span></div></header>
           <div class="kp-card-b">
-            <p class="kp-note">Coverage is entities holding a valid authorisation or registration as a share of all entities that need one (authorised + pending + operating without authorisation). Bars under 85% are flagged. Lighter bars include sample figures; BMW is fully reported for <span class="fy-label">FY 2025-26</span>.</p>
+            <p class="kp-note">Coverage is units holding a valid consent (CFE/CFO, by Red, Orange and Green category) or a waste authorisation or registration, as a share of all units that need one (covered + pending + operating without). Consent rows show only under All waste types. Lighter bars include sample figures; BMW is fully reported for <span class="fy-label">FY 2025-26</span>.</p>
             <div class="kp-mini">
               <div><h4>Coverage</h4><div class="kp-chart dash-skeleton" id="ch-auth" data-source="c_auth"></div></div>
               <div style="min-width:0">
                 <h4>Breakdown</h4>
                 <div class="kp-twrap"><table class="kp-table" id="t-auth" data-source="c_auth" data-row-key="waste,fy">
-                  <thead><tr><th data-field="waste">Waste type</th><th class="num" data-field="required">Need authorisation</th><th class="num" data-field="authorised">Authorised</th><th class="num" data-field="pending">Pending</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="without">Operating without</th><th class="num" data-field="coverage">Coverage</th></tr></thead><tbody></tbody></table></div>
+                  <thead><tr><th data-field="waste">Consent or waste type</th><th class="num" data-field="required">Need permission</th><th class="num" data-field="authorised">Covered</th><th class="num" data-field="pending">Pending</th><th class="num" data-field="refused">Refused</th><th class="num" data-field="without">Operating without</th><th class="num" data-field="coverage">Coverage</th></tr></thead><tbody></tbody></table></div>
                 <p class="kp-note">Underlined figures are sample data.</p>
               </div>
             </div>
@@ -889,16 +896,19 @@ dash.calc('c_consent', {
   },
 });
 dash.calc('c_auth', {
-  inputs: ['ar_enforcement', 's_auth'], title: 'Authorisation coverage by waste type',
-  description: 'Per waste type: authorised (reported where available), pending, refused and operating without authorisation; need authorisation = authorised + pending + without; coverage = authorised ÷ need. BMW uses reported figures throughout; other gaps come from the sample file.',
+  inputs: ['ar_enforcement', 's_auth'], title: 'Consent and authorisation coverage',
+  description: 'Per consent category (Red, Orange, Green) and waste type: covered (operating units with consent, or authorised; reported where available), pending, refused and operating without; need = covered + pending + without; coverage = covered ÷ need. BMW uses reported figures throughout; other gaps and the consent pending split come from the sample file.',
   fn: (ar_enforcement, s_auth) => {
     const one = (ar_enforcement, s_auth) => {
     const v = (k) => { const r = ar_enforcement.find((x) => x.key === k); return r ? Number(r.value) : null; };
-    const out = [{ waste: 'BMW', rules: 'Bio-Medical Waste Management Rules, 2016', authorised: v('auth.bmw.granted'), pending: v('auth.bmw.pending'), refused: v('auth.bmw.rejected'), without: v('auth.bmw.yettoapply'), sample_fields: '' }];
+    const out = [{ waste: 'BMW', kind: 'authorisation', rules: 'Bio-Medical Waste Management Rules, 2016', authorised: v('auth.bmw.granted'), pending: v('auth.bmw.pending'), refused: v('auth.bmw.rejected'), without: v('auth.bmw.yettoapply'), sample_fields: '' }];
     const reported = { HZM: v('auth.hzm.generators'), PWM: v('auth.pwm.brandowners') + v('auth.pwm.producers') + v('auth.pwm.importers') + v('auth.pwm.processors'), 'E-waste': v('auth.ew.working'), 'C&D': v('auth.cd.facilities') };
-    s_auth.forEach((s) => {
+    s_auth.filter((s) => s.kind === 'consent').forEach((s) => {
+      out.push({ waste: s.waste, kind: 'consent', rules: s.rules, authorised: v('ent.' + String(s.category).toLowerCase() + '.operating'), pending: Number(s.pending), refused: Number(s.refused), without: Number(s.without), sample_fields: 'pending,refused,without' });
+    });
+    s_auth.filter((s) => s.kind !== 'consent').forEach((s) => {
       const has = reported[s.waste] != null;
-      out.push({ waste: s.waste, rules: s.rules, authorised: has ? reported[s.waste] : Number(s.authorised), pending: Number(s.pending), refused: Number(s.refused), without: Number(s.without), sample_fields: (has ? '' : 'authorised,') + 'pending,refused,without' });
+      out.push({ waste: s.waste, kind: 'authorisation', rules: s.rules, authorised: has ? reported[s.waste] : Number(s.authorised), pending: Number(s.pending), refused: Number(s.refused), without: Number(s.without), sample_fields: (has ? '' : 'authorised,') + 'pending,refused,without' });
     });
     out.forEach((r) => { r.required = r.authorised + r.pending + r.without; r.coverage = r.authorised / r.required; });
     return out;
@@ -1036,7 +1046,7 @@ dash.calc('c_hotspots', {
 });
 dash.calc('c_outside', {
   inputs: ['c_auth'], title: 'Units outside the net',
-  description: 'Per year: units operating without authorisation, summed across waste types (BMW reported, others sample).',
+  description: 'Per year: units operating without consent or authorisation, summed across consent categories and waste types (BMW reported, others sample).',
   fn: (c_auth) => [...new Set(c_auth.map((r) => r.fy))].map((fy) => ({ fy, without_total: c_auth.filter((r) => r.fy === fy).reduce((a, r) => a + Number(r.without), 0) })),
 });
 dash.calc('c_returns', {
@@ -1306,8 +1316,8 @@ dash.calc('c_cit', {
     if (V && V.expired > 0) add('high', 'Enforcement', 'enforcement', [M('c_validity', V, { module: 'All CFO' }, 'expired'), ' operating units hold an expired consent to operate, and ', M('c_validity', V, { module: 'All CFO' }, 'expiring_90'), ' more expire within 90 days.'], 'Send renewal reminders now and issue show-cause notices to units running on an expired consent.');
     const B = one('ar_enforcement', (r) => r.key === 'auth.bmw.yettoapply');
     if (B && B.value > 0) add('high', 'Enforcement', 'enforcement', [M('ar_enforcement', B, { key: 'auth.bmw.yettoapply' }, 'value'), ' health care facilities are operating without a bio-medical waste authorisation.'], 'Run a registration drive with district health officers using the hospital and clinic registers.');
-    const A = R('c_auth').slice().sort((a, b) => a.coverage - b.coverage)[0];
-    if (A && A.coverage < 0.85) add(A.coverage < 0.5 ? 'high' : 'medium', 'Enforcement', 'enforcement', ['Authorisation coverage is lowest for ' + A.waste + ': only ', M('c_auth', A, { waste: A.waste }, 'coverage', 'pct0'), ' of entities that need one hold it.'], 'Map unregistered ' + A.waste + ' generators and facilities and set a coverage target for the year.');
+    const A = R('c_auth').filter((r) => r.kind === 'authorisation').sort((a, b) => a.coverage - b.coverage)[0];
+    if (A) add(A.coverage < 0.5 ? 'high' : 'medium', 'Enforcement', 'enforcement', ['Authorisation coverage is lowest for ' + A.waste + ': only ', M('c_auth', A, { waste: A.waste }, 'coverage', 'pct0'), ' of entities that need one hold it.'], 'Map unregistered ' + A.waste + ' generators and facilities and set a coverage target for the year.');
     const I = R('c_insp').filter((r) => r.zone !== 'All zones').sort((a, b) => b.pending_ratio - a.pending_ratio)[0], IS = one('c_insp', (r) => r.zone === 'All zones');
     if (I && IS) add(I.pending_ratio > 0.3 ? 'high' : 'medium', 'Enforcement', 'enforcement', [M('c_insp', I, { zone: I.zone }, 'pending_ratio', 'pct0'), ' of due inspections are still pending in ' + I.zone + ' zone, against ', M('c_insp', IS, { zone: 'All zones' }, 'pending_ratio', 'pct0'), ' statewide.'], 'Reassign field officers or schedule joint inspection drives in ' + I.zone + '.');
     const WS = R('c_waste').filter((r) => r.handled_ratio != null).sort((a, b) => a.handled_ratio - b.handled_ratio)[0];
@@ -1370,12 +1380,11 @@ dash.calc('c_cit', {
           td.textContent = f === 'waste' ? r.waste : f === 'coverage' ? fmt(r.coverage, 'pct') : fmt(r[f]);
           if (num) td.className = 'num';
           if (r.sample_fields.split(',').includes(f) || (f === 'required' && r.sample_fields)) { td.style.textDecoration = 'underline dashed var(--color-warn)'; td.style.textUnderlineOffset = '3px'; td.title = 'Sample'; }
-          if (f === 'coverage' && r.coverage < 0.85) td.style.color = 'var(--color-bad)';
           tr.appendChild(td);
         });
         return tr;
       }));
-      if (visible($('ch-auth')) && st($('ch-auth'), 'c_auth')) bar($('ch-auth'), rows.slice().sort((a, b) => a.coverage - b.coverage), { label: (r) => r.waste, max: 1, fmt: (v) => fmt(v, 'pct'), tickFmt: pct, ref: { value: 0.85, label: '85%' }, series: [{ f: 'coverage', name: 'Coverage', color: C[0], sample: (r) => !!r.sample_fields, colorFn: (r) => (r.coverage < 0.85 ? 'var(--cds-chart-status-critical)' : C[0]) }], tipExtra: (r) => [['Authorised', fmt(r.authorised)], ['Need authorisation', fmt(r.required)], ['Operating without', fmt(r.without)], ['Rules', r.rules], ['Source', r.sample_fields ? 'Partly sample' : 'Reported, FY ' + window.kpFy()]] });
+      if (visible($('ch-auth')) && st($('ch-auth'), 'c_auth')) bar($('ch-auth'), rows.slice().sort((a, b) => a.coverage - b.coverage), { label: (r) => r.waste, max: 1, fmt: (v) => fmt(v, 'pct'), tickFmt: pct, series: [{ f: 'coverage', name: 'Coverage', color: C[0], sample: (r) => !!r.sample_fields }], tipExtra: (r) => [['Covered', fmt(r.authorised)], ['Need permission', fmt(r.required)], ['Operating without', fmt(r.without)], ['Rules', r.rules], ['Source', r.sample_fields ? 'Partly sample' : 'Reported, FY ' + window.kpFy()]] });
     }
 
     if (visible($('ch-validity')) && st($('ch-validity'), 'c_validity')) {
@@ -1499,6 +1508,35 @@ dash.calc('c_cit', {
 
   const named = location.hash.slice(1);
   if (['overview', 'enforcement', 'monitoring', 'financials', 'legal', 'citizen'].includes(named)) window.kpShow(named);
+  // Info icons on the main section headings: hover or focus shows what the section covers.
+  const INFO = {
+    'Needs attention': 'Concerns picked automatically from the other tabs when a figure crosses a threshold, such as more than 20% of applications past the Sakala limit, or the waste type with the lowest authorisation coverage. High-severity items come first. Several rest on sample data until the Board’s registers are connected.',
+    'Outside the net': 'Units that should hold a consent (CFE/CFO) or a waste authorisation or registration but have none. Consent coverage uses operating Red, Orange and Green units (reported) against sample pending and operating-without counts. Coverage = covered ÷ (authorised + pending + operating without). Only the BMW “operating without” count is reported; other waste types use sample figures until a full list of entities is matched against the Board’s register.',
+    'Applying': 'Applications filed but not yet decided, by processing stage: RO scrutiny, query raised or replied, e-Sign, payment, inspection pending, head office scrutiny and the Consent Committee. “Past Sakala limit” means older than the time limit notified for that service. Stage counts are sample data; consent totals are reported.',
+    'In the net: filings and inspections due': 'Units that hold a valid consent or authorisation but still owe something: an annual return (BMW Form IV, hazardous waste Form 4, e-waste Form 3 and others, mostly due 30 June) or a periodic inspection. Inspections due ratio = due inspections not yet done ÷ inspections due. Return and inspection figures are sample data.',
+    'Consent expiring or expired': 'Units whose consent to operate expires soon or has already lapsed, based on the valid-upto date in the register. CFO validity is 5 years for Red, 10 for Orange and 15 for Green units. Units with no recorded date cannot be tracked and need fixing in the register. Sample data.',
+    'Waste handling': 'Compares waste reported in annual returns with waste actually treated, recycled or safely disposed of, by waste type. Handled ÷ reported below 90% suggests waste going untracked. Bio-medical and solid waste figures are reported; the others are partly sample.',
+    'Site monitoring': 'Air and water quality at the Board’s monitoring points. Air stations are compared with the 60 µg/m³ annual PM10 standard; water stations with their designated-use class. The hotspot map adds sample water-body, industrial-cluster, mining and contaminated-site points.',
+    'Lab insights': 'Work of the Board’s nine laboratories: samples analysed (reported), and accreditation, failure rate and parameter coverage (sample).',
+    'Consent fees and spending': 'The Board’s receipts and expenditure for the year, in Rs lakh. Fees from consents and authorisations are the main source of income.',
+    'Environmental compensation and penalties': 'Compensation levied on polluters on the polluter-pays principle and held in a separate fund, plus fines collected. The fund figures are cumulative, from a KSPCB report; the Chandapura Lake case is the largest single levy.',
+    'Cases': 'Court and tribunal cases involving the Board, cumulative since its inception: filed, disposed and pending, by forum.',
+    'Upcoming hearings and directions': 'Next listed hearings, and how many notices and directions issued by the Board have been complied with. Both use sample data until the legal cell’s register is connected.',
+    'Complaint status and analytics': 'Pollution complaints from the public: received, resolved and pending, by zone and by pollution type. Zone figures are reported; the split by type is sample.',
+  };
+  document.querySelectorAll('h2.kp-sec').forEach((h, i) => {
+    const label = [...h.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('').trim();
+    const text = INFO[label]; if (!text) return;
+    const wrap = document.createElement('span'); wrap.className = 'kp-info-wrap';
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'kp-info'; btn.textContent = 'i'; btn.setAttribute('aria-label', 'About ' + label);
+    const pop = document.createElement('span'); pop.className = 'kp-info-pop'; pop.setAttribute('role', 'tooltip'); pop.id = 'kp-info-' + i; pop.textContent = text;
+    btn.setAttribute('aria-describedby', pop.id);
+    wrap.append(btn, pop);
+    btn.addEventListener('click', (ev) => { ev.stopPropagation(); const open = !wrap.classList.contains('open'); document.querySelectorAll('.kp-info-wrap.open').forEach((x) => x.classList.remove('open')); wrap.classList.toggle('open', open); btn.setAttribute('aria-expanded', String(open)); });
+    const sm = h.querySelector('small'); if (sm) h.insertBefore(wrap, sm); else h.appendChild(wrap);
+  });
+  document.addEventListener('click', () => document.querySelectorAll('.kp-info-wrap.open').forEach((x) => x.classList.remove('open')));
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') document.querySelectorAll('.kp-info-wrap.open').forEach((x) => x.classList.remove('open')); });
   document.querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.jump).scrollIntoView({ behavior: 'smooth', block: 'start' })));
   document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { window.kpShow(b.dataset.go); document.getElementById('kp').scrollIntoView(); }));
 })();
